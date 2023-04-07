@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package main;
+option go_package = "./api";
+
+message Void {}
+
+message File {
+    int32 id = 1;
+    int64 size = 2;
+    string name = 3;
+    string type = 4;
+    string extension = 5;
+}
+
+message FilePushRequest {
+    File file = 1;
+    string host = 2;
+    string port = 3;
+}
+
+message FilePushResponse {
+    bool accepted = 1;
+    string host = 2;
+    string port = 3;
+    File file = 4;
+}
+
+service FileService {
+    rpc FilePush(FilePushRequest) returns (FilePushResponse) {}
+    rpc ClearToSend(FilePushResponse) returns (Void) {}
+    rpc Hello(Void) returns (Void) {}
+}

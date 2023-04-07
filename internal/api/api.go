@@ -1,0 +1,83 @@
+package api
+
+import (
+	context "context"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/dhamith93/share_core/internal/file"
+	fileservice "github.com/dhamith93/share_core/internal/file_service"
+	"github.com/dhamith93/share_core/internal/system"
+	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+)
+
+type Server struct {
+	FileService fileservice.FileService
+	PendingFile string
+	UnimplementedFileServiceServer
+}
+
+func (s *Server) Init() {
+	s.FileService = fileservice.FileService{}
+}
+
+func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*FilePushResponse, error) {
+	p, _ := peer.FromContext(ctx)
+	go s.FileService.Receive(s.getFileStruct(fileRequest.File))
+	s.sendClearToSend(strings.Split(p.Addr.String(), ":")[0]+":"+fileRequest.Port, fileRequest.File)
+	return &FilePushResponse{Accepted: true}, nil
+}
+
+func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
+	service := fileservice.FileService{}
+	log.Println(fileResponse)
+	go service.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.File))
+	return &Void{}, nil
+}
+
+func (s *Server) Hello(ctx context.Context, void *Void) (*Void, error) {
+	return &Void{}, nil
+}
+
+func (s *Server) getFileStruct(in *File) file.File {
+	log.Println(s.PendingFile)
+	return file.File{
+		Id:        in.Id,
+		Name:      in.Name,
+		Type:      in.Type,
+		Extension: in.Extension,
+		Size:      in.Size,
+		Path:      s.PendingFile,
+	}
+}
+
+func (s *Server) sendClearToSend(host string, file *File) {
+	conn, c, ctx, cancel := createClient(host)
+	if conn == nil {
+		log.Printf("error creating connection")
+		return
+	}
+	defer conn.Close()
+	defer cancel()
+	_, err := c.ClearToSend(ctx, &FilePushResponse{File: file, Host: system.GetIp(), Port: s.FileService.Port})
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func createClient(endpoint string) (*grpc.ClientConn, FileServiceClient, context.Context, context.CancelFunc) {
+	conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Println("connection error: " + err.Error())
+		return nil, nil, nil, nil
+	}
+	c := NewFileServiceClient(conn)
+	ctx, cancel := context.WithTimeout(metadata.NewOutgoingContext(context.Background(), nil), time.Second*10)
+	return conn, c, ctx, cancel
+}

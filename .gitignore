@@ -1,0 +1,16 @@
+# General
+.DS_Store
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+#env
+.env
+
+#build dir
+*/build
+build
