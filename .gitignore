@@ -16,4 +16,4 @@
 build
 
 # sqlite db
-.progress.db
+*.db

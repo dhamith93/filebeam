@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dhamith93/share_core/internal/database"
 	"github.com/dhamith93/share_core/internal/file"
 	fileservice "github.com/dhamith93/share_core/internal/file_service"
 	"github.com/dhamith93/share_core/internal/system"
@@ -19,6 +20,7 @@ import (
 type Server struct {
 	FileService fileservice.FileService
 	PendingFile string
+	Database    *database.Database
 	UnimplementedFileServiceServer
 }
 
@@ -28,8 +30,11 @@ func (s *Server) Init() {
 
 func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*FilePushResponse, error) {
 	p, _ := peer.FromContext(ctx)
+	ip := strings.Split(p.Addr.String(), ":")[0]
+	s.FileService.Database = s.Database
+	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Size)
 	go s.FileService.Receive(s.getFileStruct(fileRequest.File))
-	s.sendClearToSend(strings.Split(p.Addr.String(), ":")[0]+":"+fileRequest.Port, fileRequest.File)
+	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
 	return &FilePushResponse{Accepted: true}, nil
 }
 

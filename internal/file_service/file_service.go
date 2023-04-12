@@ -6,12 +6,15 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/dhamith93/share_core/internal/database"
 	"github.com/dhamith93/share_core/internal/file"
 )
 
 type FileService struct {
-	Port string
+	Port     string
+	Database *database.Database
 }
 
 func (f *FileService) Receive(file file.File) error {
@@ -34,14 +37,35 @@ func (f *FileService) Receive(file file.File) error {
 		}
 		defer fo.Close()
 		buf := make([]byte, 1024)
+		completed := 0
+
+		// Update progress every second
+		ticker := time.NewTicker(time.Second)
+		quit := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					f.Database.UpdateIncomingTransfer(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
+				case <-quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+
 		for {
 			n, err := c.Read(buf)
 			if err != nil {
+				// stop ticker
+				close(quit)
+				f.Database.UpdateIncomingTransfer(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
 				if err != io.EOF {
 					return err
 				}
 				return nil
 			}
+			completed += n
 			if _, err := fo.Write(buf[:n]); err != nil {
 				return err
 			}

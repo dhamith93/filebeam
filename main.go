@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dhamith93/share_core/internal/api"
+	"github.com/dhamith93/share_core/internal/database"
 	"github.com/dhamith93/share_core/internal/file"
 	"github.com/dhamith93/share_core/internal/system"
 	"google.golang.org/grpc"
@@ -26,10 +27,12 @@ func main() {
 	flag.StringVar(&host, "host", "192.168.123.201:8080", "host")
 	flag.StringVar(&path, "path", "", "File path")
 	flag.Parse()
+	db := database.Database{}
+	db.CreateDB("test.db")
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	s := api.Server{}
+	s := api.Server{Database: &db}
 	go func() {
 		defer wg.Done()
 		lis, err := net.Listen("tcp", ":"+listeningPort)
@@ -52,7 +55,9 @@ func main() {
 		defer conn.Close()
 		defer cancel()
 		s.PendingFile = path
-		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(file.CreateFile(path)), Port: listeningPort})
+		f := file.CreateFile(path)
+		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Port: listeningPort})
+		db.AddTransfer(host, path, f.Size)
 		if err != nil {
 			log.Printf("error sending data")
 			os.Exit(1)
@@ -66,6 +71,10 @@ func main() {
 		resp := <-ch
 		if resp == "done" {
 			break
+		}
+		err := db.AddDevice(resp)
+		if err != nil {
+			log.Println(err)
 		}
 		log.Println(resp)
 	}
@@ -103,7 +112,8 @@ func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 		}
 		go func(ip string, ch chan string) {
 			defer wg.Done()
-			conn, c, ctx, cancel := createClient(ip + ":" + port)
+			host := ip + ":" + port
+			conn, c, ctx, cancel := createClient(host)
 			if conn == nil {
 				return
 			}
@@ -113,7 +123,7 @@ func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 			if err != nil {
 				return
 			}
-			ch <- ip
+			ch <- host
 		}(ip, ch)
 	}
 
