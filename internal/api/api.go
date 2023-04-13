@@ -33,14 +33,14 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 	ip := strings.Split(p.Addr.String(), ":")[0]
 	s.FileService.Database = s.Database
 	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Size)
-	go s.FileService.Receive(s.getFileStruct(fileRequest.File))
+	go s.FileService.Receive(s.getFileStruct("", fileRequest.File))
 	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
 	return &FilePushResponse{Accepted: true}, nil
 }
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
 	s.FileService.Database = s.Database
-	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.File))
+	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.Host, fileResponse.File))
 	return &Void{}, nil
 }
 
@@ -48,15 +48,15 @@ func (s *Server) Hello(ctx context.Context, void *Void) (*Void, error) {
 	return &Void{}, nil
 }
 
-func (s *Server) getFileStruct(in *File) file.File {
-	log.Println(s.PendingFile)
+func (s *Server) getFileStruct(dest string, in *File) file.File {
+	path := s.Database.GetFilePath(dest, in.Name)
 	return file.File{
 		Id:        in.Id,
 		Name:      in.Name,
 		Type:      in.Type,
 		Extension: in.Extension,
 		Size:      in.Size,
-		Path:      s.PendingFile,
+		Path:      path,
 	}
 }
 
