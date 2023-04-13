@@ -39,9 +39,8 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 }
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
-	service := fileservice.FileService{}
-	log.Println(fileResponse)
-	go service.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.File))
+	s.FileService.Database = s.Database
+	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.File))
 	return &Void{}, nil
 }
 
