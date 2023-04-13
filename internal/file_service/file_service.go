@@ -46,7 +46,7 @@ func (f *FileService) Receive(file file.File) error {
 			for {
 				select {
 				case <-ticker.C:
-					f.Database.UpdateIncomingTransfer(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
+					f.Database.UpdateIncomingTransferProgress(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
 				case <-quit:
 					ticker.Stop()
 					return
@@ -59,7 +59,7 @@ func (f *FileService) Receive(file file.File) error {
 			if err != nil {
 				// stop ticker
 				close(quit)
-				f.Database.UpdateIncomingTransfer(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
+				f.Database.UpdateIncomingTransferProgress(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
 				if err != io.EOF {
 					return err
 				}
@@ -101,5 +101,5 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	f.Database.UpdateTransfer(strings.Split(host, ":")[0], file.Path, int64(n))
+	f.Database.UpdateTransferProgress(strings.Split(host, ":")[0], file.Path, int64(n))
 }

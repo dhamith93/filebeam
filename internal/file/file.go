@@ -14,6 +14,8 @@ type File struct {
 	Type      string
 	Extension string
 	Path      string
+	Dest      string
+	Src       string
 }
 
 func CreateFile(path string) File {
