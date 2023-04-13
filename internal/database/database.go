@@ -42,7 +42,7 @@ func (d *Database) AddDevice(host string) error {
 
 func (d *Database) AddTransfer(dest string, path string, size int64) error {
 	return d.execute(
-		"INSERT INTO transfer (dest, file_path, size_bytes) VALUES (?, ?, ?);",
+		"INSERT INTO transfer (dest, file_path, size_bytes, completed_bytes) VALUES (?, ?, ?, ?);",
 		dest, path, size, 0,
 	)
 }
@@ -58,6 +58,13 @@ func (d *Database) UpdateIncomingTransfer(src string, file string, completed int
 	return d.execute(
 		"UPDATE incoming_transfer SET completed_bytes = ? WHERE file = ? AND src = ?",
 		completed, file, src,
+	)
+}
+
+func (d *Database) UpdateTransfer(dest string, file string, completed int64) error {
+	return d.execute(
+		"UPDATE transfer SET completed_bytes = ? WHERE file_path = ? AND dest = ?",
+		completed, file, dest,
 	)
 }
 
@@ -122,7 +129,7 @@ func (d *Database) GetIncomingTransfers() ([]IncomingTransfer, error) {
 
 func (d *Database) initDB() {
 	query := `CREATE TABLE device (host TEXT);
-	CREATE TABLE transfer (dest TEXT, file_path TEXT, size_bytes INTEGER);
+	CREATE TABLE transfer (dest TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER);
 	CREATE TABLE incoming_transfer (src TEXT, file TEXT, size_bytes INTEGER, completed_bytes INTEGER);`
 	_, err := d.Db.Exec(query)
 	if err != nil {
