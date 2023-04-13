@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/dhamith93/share_core/internal/file"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -40,31 +41,32 @@ func (d *Database) AddDevice(host string) error {
 	)
 }
 
-func (d *Database) AddTransfer(dest string, path string, size int64) error {
-	return d.execute(
-		"INSERT INTO transfer (dest, file_path, size_bytes, completed_bytes) VALUES (?, ?, ?, ?);",
-		dest, path, size, 0,
-	)
-}
-
 func (d *Database) AddIncomingTransfer(src string, file string, size int64) error {
 	return d.execute(
-		"INSERT INTO incoming_transfer (src, file, size_bytes, completed_bytes) VALUES (?, ?, ?, ?);",
+		"INSERT INTO incoming_transfer (src, file_name, size_bytes, completed_bytes) VALUES (?, ?, ?, ?);",
 		src, file, size, 0,
 	)
 }
 
-func (d *Database) UpdateIncomingTransfer(src string, file string, completed int64) error {
+func (d *Database) UpdateIncomingTransferProgress(src string, file string, completed int64) error {
 	return d.execute(
-		"UPDATE incoming_transfer SET completed_bytes = ? WHERE file = ? AND src = ?",
+		"UPDATE incoming_transfer SET completed_bytes = ? WHERE file_name = ? AND src = ?",
 		completed, file, src,
 	)
 }
 
-func (d *Database) UpdateTransfer(dest string, file string, completed int64) error {
+func (d *Database) UpdateTransferProgress(dest string, file string, completed int64) error {
+	dest = dest + ":%"
 	return d.execute(
-		"UPDATE transfer SET completed_bytes = ? WHERE file_path = ? AND dest = ?",
-		completed, file, dest,
+		"UPDATE transfer SET completed_bytes = ? WHERE file_path = ? AND dest LIKE '"+dest+"';",
+		completed, file,
+	)
+}
+
+func (d *Database) UpdateTransferStatus(dest string, file string, status string) error {
+	return d.execute(
+		"UPDATE transfer SET status = ? WHERE file_path = ? AND dest = ?",
+		status, file, dest,
 	)
 }
 
@@ -127,10 +129,52 @@ func (d *Database) GetIncomingTransfers() ([]IncomingTransfer, error) {
 	return output, nil
 }
 
+func (d *Database) GetFilePath(dest string, name string) string {
+	output := ""
+	query := "SELECT file_path FROM transfer WHERE file_name = '" + name + "' AND dest LIKE '" + dest + ":%';"
+	rows, err := d.Db.Query(query)
+	if err != nil {
+		return output
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&output)
+		if err != nil {
+			return output
+		}
+	}
+
+	return output
+}
+
+func (d *Database) GetPendingTransfers() ([]file.File, error) {
+	output := []file.File{}
+	rows, err := d.Db.Query("SELECT dest, file_name, file_path, type, extension, size_bytes FROM transfer WHERE status = 'pending';")
+	if err != nil {
+		return output, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var f file.File
+
+		err = rows.Scan(&f.Dest, &f.Name, &f.Path, &f.Type, &f.Extension, &f.Size)
+
+		if err != nil {
+			return output, err
+		}
+
+		output = append(output, f)
+	}
+
+	return output, nil
+}
+
 func (d *Database) initDB() {
 	query := `CREATE TABLE device (host TEXT);
-	CREATE TABLE transfer (dest TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER);
-	CREATE TABLE incoming_transfer (src TEXT, file TEXT, size_bytes INTEGER, completed_bytes INTEGER);`
+	CREATE TABLE transfer (dest TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT);
+	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER);`
 	_, err := d.Db.Exec(query)
 	if err != nil {
 		log.Println(err)
