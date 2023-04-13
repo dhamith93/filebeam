@@ -29,10 +29,12 @@ func main() {
 	flag.Parse()
 	db := database.Database{}
 	db.CreateDB("test.db")
+	defer db.Db.Close()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 	s := api.Server{Database: &db}
+
 	go func() {
 		defer wg.Done()
 		lis, err := net.Listen("tcp", ":"+listeningPort)
@@ -46,23 +48,20 @@ func main() {
 		}
 	}()
 
-	if mode == "tx" {
-		conn, c, ctx, cancel := createClient(host)
-		if conn == nil {
-			log.Printf("error creating connection")
-			return
+	ticker := time.NewTicker(time.Millisecond * 500)
+	quit := make(chan struct{})
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ticker.C:
+				handlePendingTransfers(&db, listeningPort)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
 		}
-		defer conn.Close()
-		defer cancel()
-		s.PendingFile = path
-		f := file.CreateFile(path)
-		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Port: listeningPort})
-		db.AddTransfer(host, path, f.Size)
-		if err != nil {
-			log.Printf("error sending data")
-			os.Exit(1)
-		}
-	}
+	}()
 
 	ch := make(chan string)
 	go collectLocalDevicesWithServiceRunning(listeningPort, ch)
@@ -76,10 +75,31 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println(resp)
 	}
 
 	wg.Wait()
+}
+
+func handlePendingTransfers(db *database.Database, listeningPort string) {
+	files, err := db.GetPendingTransfers()
+	if err != nil {
+		log.Fatalf("failed to load transfers: %s", err)
+	}
+	for _, f := range files {
+		conn, c, ctx, cancel := createClient(f.Dest)
+		if conn == nil {
+			log.Printf("error creating connection")
+			return
+		}
+		defer conn.Close()
+		defer cancel()
+		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Port: listeningPort})
+		if err != nil {
+			log.Printf("error sending data")
+			os.Exit(1)
+		}
+		db.UpdateTransferStatus(f.Dest, f.Path, "processing")
+	}
 }
 
 func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, context.Context, context.CancelFunc) {
