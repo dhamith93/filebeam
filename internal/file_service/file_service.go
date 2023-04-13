@@ -78,7 +78,7 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Connected to server.")
+	defer conn.Close()
 
 	fileToSend, err := os.Open(file.Path)
 	if err != nil {
@@ -101,7 +101,5 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("copied to connection: %d", n)
-
-	conn.Close()
+	f.Database.UpdateTransfer(strings.Split(host, ":")[0], file.Path, int64(n))
 }
