@@ -20,15 +20,12 @@ import (
 
 func main() {
 	log.Println("Hello, World!")
-	var mode, listeningPort, host, path string
-
-	flag.StringVar(&mode, "mode", "rx", "tx/rx")
+	var listeningPort string
 	flag.StringVar(&listeningPort, "listen", "9292", "Port to listen")
-	flag.StringVar(&host, "host", "192.168.123.201:8080", "host")
-	flag.StringVar(&path, "path", "", "File path")
 	flag.Parse()
+
 	db := database.Database{}
-	db.CreateDB("test.db")
+	db.CreateDB("file_process.db")
 	defer db.Db.Close()
 
 	var wg sync.WaitGroup
