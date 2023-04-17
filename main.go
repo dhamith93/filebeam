@@ -20,12 +20,13 @@ import (
 
 func main() {
 	log.Println("Hello, World!")
-	var listeningPort string
+	var listeningPort, dbPath string
 	flag.StringVar(&listeningPort, "listen", "9292", "Port to listen")
+	flag.StringVar(&dbPath, "db-path", "file_process.db", "Path to the sqlite DB")
 	flag.Parse()
 
 	db := database.Database{}
-	db.CreateDB("file_process.db")
+	db.CreateDB(dbPath)
 	defer db.Db.Close()
 
 	var wg sync.WaitGroup
@@ -78,6 +79,9 @@ func main() {
 }
 
 func handlePendingTransfers(db *database.Database, listeningPort string) {
+	if db.FileTransferInProgress() {
+		return
+	}
 	files, err := db.GetPendingTransfers()
 	if err != nil {
 		log.Fatalf("failed to load transfers: %s", err)
@@ -95,7 +99,10 @@ func handlePendingTransfers(db *database.Database, listeningPort string) {
 			log.Printf("error sending data")
 			os.Exit(1)
 		}
-		db.UpdateTransferStatus(f.Dest, f.Path, "processing")
+		err = db.UpdateTransferStatus(f.Dest, f.Path, "processing")
+		if err == nil { // successfully set the file to processing
+			break
+		}
 	}
 }
 

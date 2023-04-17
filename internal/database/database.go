@@ -55,11 +55,11 @@ func (d *Database) UpdateIncomingTransferProgress(src string, file string, compl
 	)
 }
 
-func (d *Database) UpdateTransferProgress(dest string, file string, completed int64) error {
+func (d *Database) UpdateTransferProgress(dest string, file string, completed int64, status string) error {
 	dest = dest + ":%"
 	return d.execute(
-		"UPDATE transfer SET completed_bytes = ? WHERE file_path = ? AND dest LIKE '"+dest+"';",
-		completed, file,
+		"UPDATE transfer SET completed_bytes = ?, status = ? WHERE file_path = ? AND dest LIKE '"+dest+"';",
+		completed, status, file,
 	)
 }
 
@@ -169,6 +169,15 @@ func (d *Database) GetPendingTransfers() ([]file.File, error) {
 	}
 
 	return output, nil
+}
+
+func (d *Database) FileTransferInProgress() bool {
+	rows, err := d.Db.Query("SELECT ROWID FROM transfer WHERE status = 'processing';")
+	if err != nil {
+		return false
+	}
+	defer rows.Close()
+	return rows.Next()
 }
 
 func (d *Database) initDB() {

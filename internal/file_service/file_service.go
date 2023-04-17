@@ -101,5 +101,6 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	f.Database.UpdateTransferProgress(strings.Split(host, ":")[0], file.Path, int64(n))
+	ip := strings.Split(host, ":")[0]
+	f.Database.UpdateTransferProgress(ip, file.Path, int64(n), "completed")
 }
