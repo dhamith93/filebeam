@@ -87,6 +87,10 @@ func handlePendingTransfers(db *database.Database, listeningPort string) {
 		log.Fatalf("failed to load transfers: %s", err)
 	}
 	for _, f := range files {
+		if !f.IsFile() {
+			db.UpdateTransferStatus(f.Dest, f.Path, "cannot_read_file")
+			continue
+		}
 		conn, c, ctx, cancel := createClient(f.Dest)
 		if conn == nil {
 			log.Printf("error creating connection")

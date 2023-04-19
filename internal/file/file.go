@@ -38,3 +38,8 @@ func CreateFile(path string) File {
 		Path:      path,
 	}
 }
+
+func (f *File) IsFile() bool {
+	_, err := os.Open(f.Path)
+	return err == nil
+}
