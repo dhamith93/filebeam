@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/dhamith93/share_core/internal/file"
 	_ "github.com/mattn/go-sqlite3"
@@ -67,6 +69,40 @@ func (d *Database) UpdateTransferStatus(dest string, file string, status string)
 	return d.execute(
 		"UPDATE transfer SET status = ? WHERE file_path = ? AND dest = ?",
 		status, file, dest,
+	)
+}
+
+func (d *Database) UpdateTransferStartTime(dest string, file string) error {
+	dest = dest + ":%"
+	unixtime := strconv.FormatInt(time.Now().Unix(), 10)
+	return d.execute(
+		"UPDATE transfer SET start_time = ? WHERE file_path = ? AND dest LIKE '"+dest+"';",
+		unixtime, file,
+	)
+}
+
+func (d *Database) UpdateTransferEndTime(dest string, file string) error {
+	dest = dest + ":%"
+	unixtime := strconv.FormatInt(time.Now().Unix(), 10)
+	return d.execute(
+		"UPDATE transfer SET end_time = ? WHERE file_path = ? AND dest LIKE '"+dest+"';",
+		unixtime, file,
+	)
+}
+
+func (d *Database) UpdateIncomingTransferStartTime(dest string, file string) error {
+	unixtime := strconv.FormatInt(time.Now().Unix(), 10)
+	return d.execute(
+		"UPDATE incoming_transfer SET start_time = ? WHERE file_name = ? AND src LIKE '"+dest+"';",
+		unixtime, file,
+	)
+}
+
+func (d *Database) UpdateIncomingTransferEndTime(dest string, file string) error {
+	unixtime := strconv.FormatInt(time.Now().Unix(), 10)
+	return d.execute(
+		"UPDATE incoming_transfer SET end_time = ? WHERE file_name = ? AND src LIKE '"+dest+"';",
+		unixtime, file,
 	)
 }
 
@@ -182,8 +218,8 @@ func (d *Database) FileTransferInProgress() bool {
 
 func (d *Database) initDB() {
 	query := `CREATE TABLE device (host TEXT);
-	CREATE TABLE transfer (dest TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT);
-	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER);`
+	CREATE TABLE transfer (dest TEXT, key TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER);
+	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER, start_time INTEGER, end_time INTEGER);`
 	_, err := d.Db.Exec(query)
 	if err != nil {
 		log.Println(err)

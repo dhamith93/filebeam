@@ -39,6 +39,8 @@ func (f *FileService) Receive(file file.File) error {
 		buf := make([]byte, 1024)
 		completed := 0
 
+		ip := strings.Split(c.RemoteAddr().String(), ":")[0]
+
 		// Update progress every second
 		ticker := time.NewTicker(time.Second)
 		quit := make(chan struct{})
@@ -46,7 +48,7 @@ func (f *FileService) Receive(file file.File) error {
 			for {
 				select {
 				case <-ticker.C:
-					f.Database.UpdateIncomingTransferProgress(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
+					f.Database.UpdateIncomingTransferProgress(ip, file.Name, int64(completed))
 				case <-quit:
 					ticker.Stop()
 					return
@@ -54,12 +56,15 @@ func (f *FileService) Receive(file file.File) error {
 			}
 		}()
 
+		f.Database.UpdateIncomingTransferStartTime(ip, file.Name)
+
 		for {
 			n, err := c.Read(buf)
 			if err != nil {
 				// stop ticker
 				close(quit)
-				f.Database.UpdateIncomingTransferProgress(strings.Split(c.RemoteAddr().String(), ":")[0], file.Name, int64(completed))
+				f.Database.UpdateIncomingTransferProgress(ip, file.Name, int64(completed))
+				f.Database.UpdateIncomingTransferEndTime(ip, file.Name)
 				if err != io.EOF {
 					return err
 				}
@@ -89,6 +94,10 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ip := strings.Split(host, ":")[0]
+	f.Database.UpdateTransferStartTime(ip, file.Path)
+
 	go func() {
 		_, err := io.Copy(pw, fileToSend)
 		if err != nil {
@@ -101,6 +110,7 @@ func (f *FileService) Send(host string, file file.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ip := strings.Split(host, ":")[0]
+
 	f.Database.UpdateTransferProgress(ip, file.Path, int64(n), "completed")
+	f.Database.UpdateTransferEndTime(ip, file.Path)
 }
