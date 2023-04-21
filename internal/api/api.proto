@@ -17,6 +17,7 @@ message FilePushRequest {
     File file = 1;
     string host = 2;
     string port = 3;
+    string key = 4;
 }
 
 message FilePushResponse {

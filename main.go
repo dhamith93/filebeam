@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"log"
+	"math/rand"
 	"net"
-	"os"
 	"sync"
 	"time"
 
@@ -31,7 +31,8 @@ func main() {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-	s := api.Server{Database: &db}
+	s := api.Server{Database: &db, Key: generateKey(6)}
+	log.Println(s.Key)
 
 	go func() {
 		defer wg.Done()
@@ -98,10 +99,10 @@ func handlePendingTransfers(db *database.Database, listeningPort string) {
 		}
 		defer conn.Close()
 		defer cancel()
-		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Port: listeningPort})
+		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Key: f.Key, Port: listeningPort})
 		if err != nil {
-			log.Printf("error sending data")
-			os.Exit(1)
+			log.Printf("error sending data: %s", err.Error())
+			db.UpdateTransferStatus(f.Dest, f.Path, err.Error())
 		}
 		err = db.UpdateTransferStatus(f.Dest, f.Path, "processing")
 		if err == nil { // successfully set the file to processing
@@ -157,4 +158,14 @@ func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 
 	wg.Wait()
 	ch <- "done"
+}
+
+func generateKey(length int) string {
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	charset := "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset)-1)]
+	}
+	return string(b)
 }

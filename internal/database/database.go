@@ -43,10 +43,10 @@ func (d *Database) AddDevice(host string) error {
 	)
 }
 
-func (d *Database) AddIncomingTransfer(src string, file string, size int64) error {
+func (d *Database) AddIncomingTransfer(src string, file string, fileType string, extension string, size int64) error {
 	return d.execute(
-		"INSERT INTO incoming_transfer (src, file_name, size_bytes, completed_bytes) VALUES (?, ?, ?, ?);",
-		src, file, size, 0,
+		"INSERT INTO incoming_transfer (src, file_name, type, extension, size_bytes, completed_bytes) VALUES (?, ?, ?, ?, ?, ?);",
+		src, file, fileType, extension, size, 0,
 	)
 }
 
@@ -186,7 +186,7 @@ func (d *Database) GetFilePath(dest string, name string) string {
 
 func (d *Database) GetPendingTransfers() ([]file.File, error) {
 	output := []file.File{}
-	rows, err := d.Db.Query("SELECT dest, file_name, file_path, type, extension, size_bytes FROM transfer WHERE status = 'pending';")
+	rows, err := d.Db.Query("SELECT ROWID, dest, key, file_name, file_path, type, extension, size_bytes FROM transfer WHERE status = 'pending';")
 	if err != nil {
 		return output, err
 	}
@@ -195,7 +195,7 @@ func (d *Database) GetPendingTransfers() ([]file.File, error) {
 	for rows.Next() {
 		var f file.File
 
-		err = rows.Scan(&f.Dest, &f.Name, &f.Path, &f.Type, &f.Extension, &f.Size)
+		err = rows.Scan(&f.Id, &f.Dest, &f.Key, &f.Name, &f.Path, &f.Type, &f.Extension, &f.Size)
 
 		if err != nil {
 			return output, err

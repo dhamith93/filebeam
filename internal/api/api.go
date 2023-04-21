@@ -2,6 +2,7 @@ package api
 
 import (
 	context "context"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -18,6 +19,7 @@ import (
 )
 
 type Server struct {
+	Key         string
 	FileService fileservice.FileService
 	PendingFile string
 	Database    *database.Database
@@ -29,10 +31,13 @@ func (s *Server) Init() {
 }
 
 func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*FilePushResponse, error) {
+	if fileRequest.Key != s.Key {
+		return nil, fmt.Errorf("key does not match")
+	}
 	p, _ := peer.FromContext(ctx)
 	ip := strings.Split(p.Addr.String(), ":")[0]
 	s.FileService.Database = s.Database
-	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Size)
+	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Type, fileRequest.File.Extension, fileRequest.File.Size)
 	go s.FileService.Receive(s.getFileStruct("", fileRequest.File))
 	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
 	return &FilePushResponse{Accepted: true}, nil

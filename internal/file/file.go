@@ -9,6 +9,7 @@ import (
 
 type File struct {
 	Id        int32
+	Key       string
 	Size      int64
 	Name      string
 	Type      string
