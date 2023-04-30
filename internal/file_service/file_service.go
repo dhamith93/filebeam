@@ -12,6 +12,25 @@ import (
 	"github.com/dhamith93/share_core/internal/file"
 )
 
+type ReaderPassThru struct {
+	io.Reader
+	total    int64
+	ip       string
+	path     string
+	database *database.Database
+}
+
+func (r *ReaderPassThru) Read(p []byte) (int, error) {
+	n, err := r.Reader.Read(p)
+	r.total += int64(n)
+
+	if err == nil {
+		r.database.UpdateTransferProgress(r.ip, r.path, int64(r.total), "processing")
+	}
+
+	return n, err
+}
+
 type FileService struct {
 	Port     string
 	Database *database.Database
@@ -98,8 +117,10 @@ func (f *FileService) Send(host string, file file.File) {
 	ip := strings.Split(host, ":")[0]
 	f.Database.UpdateTransferStartTime(ip, file.Path)
 
+	toSend := &ReaderPassThru{Reader: fileToSend, database: f.Database, ip: ip, path: file.Path}
+
 	go func() {
-		_, err := io.Copy(pw, fileToSend)
+		_, err := io.Copy(pw, toSend)
 		if err != nil {
 			log.Fatal(err)
 		}
