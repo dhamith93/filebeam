@@ -37,6 +37,7 @@ type FileService struct {
 }
 
 func (f *FileService) Receive(file file.File) error {
+	file.Name = strings.ReplaceAll(file.Name, ":", "_")
 	listener, err := net.Listen("tcp", "0.0.0.0:")
 	if err != nil {
 		log.Fatal(err)
@@ -104,17 +105,19 @@ func (f *FileService) Send(host string, file file.File) {
 	}
 	defer conn.Close()
 
+	ip := strings.Split(host, ":")[0]
 	fileToSend, err := os.Open(file.Path)
 	if err != nil {
-		log.Fatal(err)
+		f.Database.UpdateTransferProgress(ip, file.Path, 0, "cannot_read_file")
+		return
 	}
 
 	pr, pw := io.Pipe()
 	if err != nil {
-		log.Fatal(err)
+		f.Database.UpdateTransferProgress(ip, file.Path, 0, "cannot_read_file")
+		return
 	}
 
-	ip := strings.Split(host, ":")[0]
 	f.Database.UpdateTransferStartTime(ip, file.Path)
 
 	toSend := &ReaderPassThru{Reader: fileToSend, database: f.Database, ip: ip, path: file.Path}
@@ -122,14 +125,15 @@ func (f *FileService) Send(host string, file file.File) {
 	go func() {
 		_, err := io.Copy(pw, toSend)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		pw.Close()
 	}()
 
 	n, err := io.Copy(conn, pr)
 	if err != nil {
-		log.Fatal(err)
+		f.Database.UpdateTransferProgress(ip, file.Path, 0, "cannot_read_file")
+		return
 	}
 
 	f.Database.UpdateTransferProgress(ip, file.Path, int64(n), "completed")
