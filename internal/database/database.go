@@ -207,13 +207,22 @@ func (d *Database) GetPendingTransfers() ([]file.File, error) {
 	return output, nil
 }
 
-func (d *Database) FileTransferInProgress() bool {
-	rows, err := d.Db.Query("SELECT ROWID FROM transfer WHERE status = 'processing';")
+func (d *Database) FileTransfersInProgress(count int) bool {
+	rows, err := d.Db.Query("SELECT COUNT(ROWID) FROM transfer WHERE status = 'processing';")
 	if err != nil {
 		return false
 	}
 	defer rows.Close()
-	return rows.Next()
+	var inCount int
+	for rows.Next() {
+		err = rows.Scan(&inCount)
+
+		if err != nil {
+			return false
+		}
+	}
+
+	return inCount == count
 }
 
 func (d *Database) initDB() {
