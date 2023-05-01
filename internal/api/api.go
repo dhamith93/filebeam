@@ -4,7 +4,6 @@ import (
 	context "context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -76,7 +75,6 @@ func (s *Server) sendClearToSend(host string, file *File) {
 	_, err := c.ClearToSend(ctx, &FilePushResponse{File: file, Host: system.GetIp(), Port: s.FileService.Port})
 	if err != nil {
 		log.Println(err)
-		os.Exit(1)
 	}
 }
 
