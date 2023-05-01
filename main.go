@@ -80,7 +80,7 @@ func main() {
 }
 
 func handlePendingTransfers(db *database.Database, listeningPort string) {
-	if db.FileTransfersInProgress(3) {
+	if db.FileTransfersInProgress(1) {
 		return
 	}
 	files, err := db.GetPendingTransfers()
