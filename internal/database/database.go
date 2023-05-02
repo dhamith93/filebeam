@@ -45,8 +45,8 @@ func (d *Database) AddDevice(host string) error {
 
 func (d *Database) AddIncomingTransfer(src string, file string, fileType string, extension string, size int64) error {
 	return d.execute(
-		"INSERT INTO incoming_transfer (src, file_name, type, extension, size_bytes, completed_bytes) VALUES (?, ?, ?, ?, ?, ?);",
-		src, file, fileType, extension, size, 0,
+		"INSERT INTO incoming_transfer (src, file_name, type, extension, size_bytes, completed_bytes, status) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		src, file, fileType, extension, size, 0, "processing",
 	)
 }
 
@@ -54,6 +54,13 @@ func (d *Database) UpdateIncomingTransferProgress(src string, file string, compl
 	return d.execute(
 		"UPDATE incoming_transfer SET completed_bytes = ? WHERE file_name = ? AND src = ?",
 		completed, file, src,
+	)
+}
+
+func (d *Database) UpdateIncomingTransferStatus(src string, file string, status string) error {
+	return d.execute(
+		"UPDATE incoming_transfer SET status = ? WHERE file_name = ? AND src = ?",
+		status, file, src,
 	)
 }
 
@@ -225,10 +232,46 @@ func (d *Database) FileTransfersInProgress(count int) bool {
 	return inCount == count
 }
 
+func (d *Database) IsIncomingTransferStopped(src string, filename string) bool {
+	rows, err := d.Db.Query("SELECT stopped FROM incoming_transfer WHERE src = '" + src + "';")
+	if err != nil {
+		return false
+	}
+	defer rows.Close()
+	var status string
+	for rows.Next() {
+		err = rows.Scan(&status)
+
+		if err != nil {
+			return false
+		}
+	}
+
+	return status == "cancelled"
+}
+
+func (d *Database) IsTransferStopped(dest string, filepath string) bool {
+	rows, err := d.Db.Query("SELECT status FROM transfer WHERE dest LIKE '" + dest + "%' AND file_path = '" + filepath + "';")
+	if err != nil {
+		return false
+	}
+	defer rows.Close()
+	var status string
+	for rows.Next() {
+		err = rows.Scan(&status)
+
+		if err != nil {
+			return false
+		}
+	}
+
+	return status == "cancelled"
+}
+
 func (d *Database) initDB() {
 	query := `CREATE TABLE device (host TEXT);
-	CREATE TABLE transfer (dest TEXT, key TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER);
-	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER, start_time INTEGER, end_time INTEGER);`
+	CREATE TABLE transfer (dest TEXT, key TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER, stopped TEXT);
+	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER, stopped TEXT);`
 	_, err := d.Db.Exec(query)
 	if err != nil {
 		log.Println(err)
