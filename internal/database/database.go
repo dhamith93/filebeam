@@ -233,7 +233,7 @@ func (d *Database) FileTransfersInProgress(count int) bool {
 }
 
 func (d *Database) IsIncomingTransferStopped(src string, filename string) bool {
-	rows, err := d.Db.Query("SELECT stopped FROM incoming_transfer WHERE src = '" + src + "';")
+	rows, err := d.Db.Query("SELECT status FROM incoming_transfer WHERE src = '" + src + "';")
 	if err != nil {
 		return false
 	}
