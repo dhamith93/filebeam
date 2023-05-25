@@ -32,6 +32,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	s := api.Server{Database: &db, Key: generateKey(6)}
+	db.SetKey(s.Key)
 	log.Println(s.Key)
 
 	go func() {

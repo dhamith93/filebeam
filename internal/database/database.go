@@ -36,6 +36,13 @@ func (d *Database) CreateDB(dbName string) {
 	d.initDB()
 }
 
+func (d *Database) SetKey(key string) error {
+	return d.execute(
+		"INSERT INTO meta (key) VALUES (?);",
+		key,
+	)
+}
+
 func (d *Database) AddDevice(host string) error {
 	return d.execute(
 		"INSERT INTO device (host) VALUES (?);",
@@ -269,7 +276,8 @@ func (d *Database) IsTransferStopped(dest string, filepath string) bool {
 }
 
 func (d *Database) initDB() {
-	query := `CREATE TABLE device (host TEXT);
+	query := `CREATE TABLE meta (key TEXT);
+	CREATE TABLE device (host TEXT);
 	CREATE TABLE transfer (dest TEXT, key TEXT, file_name TEXT, type TEXT, extension TEXT, file_path TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER, stopped TEXT);
 	CREATE TABLE incoming_transfer (src TEXT, file_name TEXT, type TEXT, extension TEXT, size_bytes INTEGER, completed_bytes INTEGER, status TEXT, start_time INTEGER, end_time INTEGER, stopped TEXT);`
 	_, err := d.Db.Exec(query)
