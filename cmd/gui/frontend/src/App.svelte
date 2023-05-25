@@ -1,21 +1,37 @@
 <script>
   import logo from './assets/images/logo-universal.png'
   import {Greet} from '../wailsjs/go/main/App.js'
+  import {GetKey} from '../wailsjs/go/main/App.js'
+  import {GetDevices} from '../wailsjs/go/main/App.js'
 
-  let resultText = "Please enter your name below 👇"
-  let name
-
+  let resultText = "Key: "
+  let devices = []
+  
   function greet() {
-    Greet(name).then(result => resultText = result)
+    Greet("name").then(result => resultText = result)
   }
+
+  function refreshDeviceList() {
+    GetDevices().then(result => {
+        devices = result
+        console.log(devices)
+        devices.forEach(d => {
+            
+        });
+    })
+  }
+
+  GetKey().then(result => resultText += result)
 </script>
 
 <main>
   <img alt="Wails logo" id="logo" src="{logo}">
   <div class="result" id="result">{resultText}</div>
+  <div class="result" id="devices">{devices}</div>
   <div class="input-box" id="input">
-    <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
+    <!-- <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/> -->
     <button class="btn" on:click={greet}>Greet</button>
+    <button class="btn" on:click={refreshDeviceList}>Refresh Device List</button>
   </div>
 </main>
 
