@@ -25,9 +25,8 @@ func main() {
 	flag.StringVar(&dbPath, "db-path", "file_process.db", "Path to the sqlite DB")
 	flag.Parse()
 
-	db := database.Database{}
-	db.CreateDB(dbPath)
-	defer db.Db.Close()
+	db := database.MemDatabase{}
+	db.CreateDB()
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -80,7 +79,7 @@ func main() {
 	wg.Wait()
 }
 
-func handlePendingTransfers(db *database.Database, listeningPort string) {
+func handlePendingTransfers(db *database.MemDatabase, listeningPort string) {
 	if db.FileTransfersInProgress(1) {
 		return
 	}

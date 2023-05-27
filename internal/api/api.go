@@ -21,7 +21,7 @@ type Server struct {
 	Key         string
 	FileService fileservice.FileService
 	PendingFile string
-	Database    *database.Database
+	Database    *database.MemDatabase
 	UnimplementedFileServiceServer
 }
 
