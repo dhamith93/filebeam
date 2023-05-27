@@ -6,8 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -22,7 +20,7 @@ import (
 // App struct
 type App struct {
 	ctx           context.Context
-	db            database.Database
+	db            database.MemDatabase
 	apiServer     api.Server
 	listeningPort string
 }
@@ -38,8 +36,8 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	a.listeningPort = "9292"
-	a.db = database.Database{}
-	a.db.CreateDB(filepath.Join(os.TempDir(), "filebeam.db"))
+	a.db = database.MemDatabase{}
+	a.db.CreateDB()
 	// defer a.db.Db.Close()
 
 	a.apiServer = api.Server{Database: &a.db, Key: generateKey(6)}
@@ -76,7 +74,7 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) shutdown(ctx context.Context) {
-	a.db.Db.Close()
+
 }
 
 // Greet returns a greeting for the given name

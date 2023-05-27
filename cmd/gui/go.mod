@@ -3,13 +3,14 @@ module github.com/dhamith93/share_core/cmd/gui
 go 1.18
 
 require (
-	github.com/dhamith93/share_core v0.0.0-20230502184206-38fe0a6446d9
+	github.com/dhamith93/share_core v0.1.0
 	github.com/wailsapp/wails/v2 v2.5.1
 	google.golang.org/grpc v1.55.0
 )
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/dhamith93/SyMon v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
