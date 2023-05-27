@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/dhamith93/SyMon v1.1.1
 	github.com/gabriel-vasile/mimetype v1.4.2
-	github.com/mattn/go-sqlite3 v1.14.16
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 )
