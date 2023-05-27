@@ -18,7 +18,7 @@ type ReaderPassThru struct {
 	total    int64
 	ip       string
 	path     string
-	database *database.Database
+	database *database.MemDatabase
 }
 
 func (r *ReaderPassThru) Read(p []byte) (int, error) {
@@ -39,7 +39,7 @@ func (r *ReaderPassThru) Read(p []byte) (int, error) {
 
 type FileService struct {
 	Port     string
-	Database *database.Database
+	Database *database.MemDatabase
 }
 
 func (f *FileService) Receive(file file.File) error {
