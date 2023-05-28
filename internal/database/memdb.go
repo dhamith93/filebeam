@@ -11,6 +11,13 @@ type MemDatabase struct {
 	Db memdb.Database
 }
 
+type IncomingTransfer struct {
+	Src            string
+	File           string
+	SizeBytes      int64
+	CompletedBytes int64
+}
+
 func (d *MemDatabase) SetKey(key string) error {
 	return d.Db.Tables["meta"].Insert("key", key)
 }
