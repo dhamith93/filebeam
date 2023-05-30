@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "svelte-file-dropzone": "^2.0.1",
+    "svelte-icons-pack": "^2.1.0"
+  }
+}

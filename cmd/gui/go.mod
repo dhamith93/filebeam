@@ -3,7 +3,7 @@ module github.com/dhamith93/share_core/cmd/gui
 go 1.18
 
 require (
-	github.com/dhamith93/share_core v0.1.0
+	github.com/dhamith93/share_core v0.1.1
 	github.com/wailsapp/wails/v2 v2.5.1
 	google.golang.org/grpc v1.55.0
 )
@@ -23,7 +23,6 @@ require (
 	github.com/leaanthony/slicer v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/samber/lo v1.27.1 // indirect

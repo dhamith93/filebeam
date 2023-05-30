@@ -18,8 +18,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dhamith93/SyMon v1.1.1 h1:6lRUvVkw7EeBtKhSYSgIkn4pZrkAdIXK5Dh0jUr73gE=
 github.com/dhamith93/SyMon v1.1.1/go.mod h1:NgFke8jUYgDm6Nv5ZB4aZcifpKkd9OGLilF+BbVdNcc=
-github.com/dhamith93/share_core v0.1.0 h1:t2Yv8Zh32hGX+PCIj6xIgu0LwUyBZVB2pKMUe/z2m1M=
-github.com/dhamith93/share_core v0.1.0/go.mod h1:hZrTFzFNxEius9/yHoywjq4ahZiUT683dOESyKlurwc=
+github.com/dhamith93/share_core v0.1.1 h1:UJMj4mYM2LJIm2M2hLZTvwsGnUtZDDAkuQ2m0XP4ywY=
+github.com/dhamith93/share_core v0.1.1/go.mod h1:hF3CFlSjoqNUQHg+cnwGiZrBmkXJzuKyHublFXNbJBw=
 github.com/dhamith93/systats v0.1.9/go.mod h1:NBgEXSlRZa45urXVKwl9Wp0cfOHKgWNT/dIMWS2pu8M=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -87,8 +87,6 @@ github.com/mattn/go-colorable v0.1.11/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-sqlite3 v1.14.12/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
-github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2 h1:acNfDZXmm28D2Yg/c3ALnZStzNaZMSagpbr96vY6Zjc=
 github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2/go.mod h1:HKlIX3XHQyzLZPlr7++PzdhaXEj94dEiJgZDTsxEqUI=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
