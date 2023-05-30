@@ -24,3 +24,7 @@ body {
     height: 100vh;
     text-align: center;
 }
+
+.selected {
+    background-color: rgb(86, 86, 86);
+}
