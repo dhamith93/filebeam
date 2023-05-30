@@ -58,6 +58,24 @@ func (a *App) startup(ctx context.Context) {
 		}
 	}()
 
+	a.refreshDevices()
+
+	ticker := time.NewTicker(time.Second * 5)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				a.refreshDevices()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
+
+func (a *App) refreshDevices() {
 	ch := make(chan string)
 	go collectLocalDevicesWithServiceRunning(a.listeningPort, ch)
 
@@ -66,14 +84,27 @@ func (a *App) startup(ctx context.Context) {
 		if resp == "done" {
 			break
 		}
-		err := a.db.AddDevice(resp)
-		if err != nil {
-			log.Println(err)
+		existing, _ := a.db.GetDevices()
+		exists := false
+		for _, d := range existing {
+			if d == resp {
+				exists = true
+			}
+		}
+		if !exists {
+			err := a.db.AddDevice(resp)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }
 
 func (a *App) shutdown(ctx context.Context) {
+
+}
+
+func (a *App) domready(ctx context.Context) {
 
 }
 
@@ -88,6 +119,14 @@ func (a *App) GetDevices() []string {
 		log.Fatal(err.Error())
 	}
 	return devices
+}
+
+func (a *App) GetDirectoryContent(path string) ([]File, error) {
+	return getDirectoryContent(path)
+}
+
+func (a *App) GetHomeDir() string {
+	return getHomeDir()
 }
 
 func (a *App) GetKey() string {
@@ -108,11 +147,11 @@ func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, con
 func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 	ips := system.GetLocalIPs()
 	var wg sync.WaitGroup
-	wg.Add(len(ips) - 1)
+	wg.Add(len(ips))
 	for _, ip := range ips {
-		if ip == system.GetIp() {
-			continue
-		}
+		// if ip == system.GetIp() {
+		// 	continue
+		// }
 		go func(ip string, ch chan string) {
 			defer wg.Done()
 			host := ip + ":" + port
@@ -126,7 +165,7 @@ func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 			if err != nil {
 				return
 			}
-			ch <- host
+			ch <- ip
 		}(ip, ch)
 	}
 
