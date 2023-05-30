@@ -6,6 +6,14 @@ export function GetDevices() {
   return window['go']['main']['App']['GetDevices']();
 }
 
+export function GetDirectoryContent(arg1) {
+  return window['go']['main']['App']['GetDirectoryContent'](arg1);
+}
+
+export function GetHomeDir() {
+  return window['go']['main']['App']['GetHomeDir']();
+}
+
 export function GetKey() {
   return window['go']['main']['App']['GetKey']();
 }
