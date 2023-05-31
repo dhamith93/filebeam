@@ -8,6 +8,8 @@ export function GetDirectoryContent(arg1:string):Promise<Array<main.File>>;
 
 export function GetHomeDir():Promise<string>;
 
+export function GetIp():Promise<string>;
+
 export function GetKey():Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;

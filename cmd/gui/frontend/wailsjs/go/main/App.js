@@ -14,6 +14,10 @@ export function GetHomeDir() {
   return window['go']['main']['App']['GetHomeDir']();
 }
 
+export function GetIp() {
+  return window['go']['main']['App']['GetIp']();
+}
+
 export function GetKey() {
   return window['go']['main']['App']['GetKey']();
 }
