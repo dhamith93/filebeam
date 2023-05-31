@@ -133,6 +133,10 @@ func (a *App) GetKey() string {
 	return a.apiServer.Key
 }
 
+func (a *App) GetIp() string {
+	return system.GetIp()
+}
+
 func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, context.Context, context.CancelFunc) {
 	conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
