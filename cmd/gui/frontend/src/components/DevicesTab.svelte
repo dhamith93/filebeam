@@ -10,6 +10,9 @@
     <FileTree path="{homeDir}" />
     <DeviceTree />
 </div>
+<div id="transfers">
+
+</div>
 
 <style>
     #devices-main {

@@ -1,13 +1,13 @@
 <script>
     import Icon from 'svelte-icons-pack/Icon.svelte';
-    import FiShare from "svelte-icons-pack/fi/FiShare";
+    import VscCloudUpload from "svelte-icons-pack/vsc/VscCloudUpload";
 	export let host;
 </script>
 
 <style>
     div {
         height: 35px;
-        width: 360px;
+        width: 300px;
         padding: 5px;
         background-color: rgb(247, 247, 247);
 		color: #3f3f3f;
@@ -15,6 +15,7 @@
         display: flex;
         align-items: center;
         margin: 5px;
+        overflow: hidden;
 	}
     div input, div p {
         margin-left: 10px;
@@ -22,16 +23,29 @@
     }
 
     div input {
-        width: 150px;
+        width: 80px;
         height: 30px;
         font-size: 1em;
+        font-family: monospace;
+        border: 1px #3e3e3e solid;
+        padding: 0 5px;
+    }
+
+    .upload-btn {
+        background-color: #3c6db2;
+        color: #fff;
+        font-size: 2em;
+        font-weight: 800;
+        height: 35px;
+        width: 35px;
+        border-radius: 10%;
     }
 </style>
 
 <div>
     <p>{host}</p>
     <input type="text" placeholder="key">
-    <button>
-        <Icon src="{FiShare}" />
+    <button class="upload-btn">
+        <Icon src="{VscCloudUpload}" />
     </button>
 </div>

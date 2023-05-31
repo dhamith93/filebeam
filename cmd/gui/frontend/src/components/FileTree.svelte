@@ -1,7 +1,9 @@
 <script>
     import Icon from 'svelte-icons-pack/Icon.svelte';
-    import FiFolder from "svelte-icons-pack/fi/FiFolder";
-    import FiFilePlus from "svelte-icons-pack/fi/FiFilePlus";
+    import VscFolder from "svelte-icons-pack/vsc/VscFolder";
+    import VscFileBinary from "svelte-icons-pack/vsc/VscFileBinary";
+    import VscArrowLeft from "svelte-icons-pack/vsc/VscArrowLeft";
+    import VscArrowRight from "svelte-icons-pack/vsc/VscArrowRight";
     import {GetDirectoryContent} from '../../wailsjs/go/main/App.js'
 	export let path;
     let history = [];
@@ -45,16 +47,21 @@
     }
 </script>
 
-<div>
-    <button on:click={handleBackBtnClick}>Back</button> <input type="text" name="path" id="path" bind:value={path}> <button on:click={() => {refreshPath(path)}}>Refresh</button>
+<div id="main">
+    <h3>File browser</h3>
+    <div id="address-bar">
+        <button on:click={handleBackBtnClick}><Icon src="{VscArrowLeft}" /></button> <input type="text" name="path" id="path" bind:value={path}> <button on:click={() => {refreshPath(path)}}><Icon src="{VscArrowRight}" /></button>
+    </div>
     <div id="file-tree">
         {#each content as item}
             <div id="file-item" on:click={() => {handleFileItemClick(item)}} on:keydown={() => {handleFileItemClick(item)}} bind:this={item.Selected}>
-                {#if item.IsDir}
-                    <Icon src="{FiFolder}" />
-                {:else}
-                    <Icon src="{FiFilePlus}" />
-                {/if}
+                <span>
+                    {#if item.IsDir}
+                        <Icon src="{VscFolder}" />
+                    {:else}
+                        <Icon src="{VscFileBinary}" />
+                    {/if}
+                </span>
                 <p>{item.Name}</p>
     
             </div>
@@ -64,11 +71,14 @@
 
 
 <style>
-    div {
-        margin: 20px 60px 0 0;
+    #main {
+        padding: 5px;
+        border: 3px solid rgb(122, 122, 122);
+        height: 500px;
     }
     #file-tree {
-        height: 300px;
+        max-width: 500px;
+        height: 400px;
         overflow: scroll;
     }
 
@@ -78,20 +88,30 @@
         padding: 5px;
         cursor: pointer;
         align-items: center;
-        overflow: scroll;
     }
 
     #file-item p {
         margin-top: 0;
         margin-bottom: 0;
         margin-left: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: left;
     }
 
     #file-item:hover {
         background-color: rgb(86, 86, 86);
     }
 
+    #address-bar {
+        display: flex;
+        align-items: center;
+    }
+
     #path {
         min-width: 400px;
+        height: 1rem;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 </style>
