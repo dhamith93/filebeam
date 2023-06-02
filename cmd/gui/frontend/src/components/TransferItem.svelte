@@ -5,6 +5,7 @@
     import VscStopCircle from "svelte-icons-pack/vsc/VscStopCircle";
     import ProgressBar from "@okrad/svelte-progressbar"
     export let filename;
+    export let path;
     export let ip;
     export let completedSize;
     export let size;
@@ -13,6 +14,9 @@
     export let done;
     export let isDownload;
     export let isCanceled;
+    export let status;
+    export let timeSpent;
+    export let cancelFunc;
     let icnSrc = isDownload ? VscArrowDown : VscArrowUp;
 </script>
 <div id="item">
@@ -24,14 +28,20 @@
         {completedSize} / {size} 
     </p>
     <p>
-        {eta} | {speed}
+        {#if !isCanceled}
+            ETA: {eta} | Spent: {timeSpent}
+        {/if}
+    </p>
+    <p>
+        {speed}
+    </p>
+    <p>
+        {status.toUpperCase()}
     </p>
     {#if done != 100 && !isCanceled}
-        <button>Cancel</button>
+        <button on:click={cancelFunc(ip, isDownload ? filename : path, isDownload)}>Cancel</button>
     {/if}
-    {#if isCanceled} 
-        <p>Canceled</p>
-    {:else}
+    {#if !isCanceled} 
         <ProgressBar series={[done]} colors={['#EE562E']} addBackground={true} bgColor={"#000"}/>
     {/if}
 </div>
