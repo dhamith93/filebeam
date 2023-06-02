@@ -15,10 +15,10 @@
 <main>
     <div id="meta">
         <div>
-            <h3>IP: {ip}</h3>  
+            <h3>IP: <span class="mono">{ip}</span></h3>  
         </div>
         <div>
-            <h3>Key: {key}</h3>
+            <h3>Key: <span class="mono">{key}</span></h3>
         </div>
         <div>
             <button on:click={() => (showTransfers = true)}>Transfers</button>
@@ -28,7 +28,7 @@
 </main>
 
 <Modal bind:showTransfers>
-    <TransferList />
+    <TransferList bind:showTransfers />
 </Modal>
 
 <style>
@@ -41,4 +41,7 @@
         height: 40px;
     }
 
+    .mono {
+        font-family: monospace;
+    }
 </style>
