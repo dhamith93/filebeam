@@ -3,7 +3,7 @@ module github.com/dhamith93/share_core/cmd/gui
 go 1.18
 
 require (
-	github.com/dhamith93/share_core v0.1.1
+	github.com/dhamith93/share_core v0.1.3
 	github.com/wailsapp/wails/v2 v2.5.1
 	google.golang.org/grpc v1.55.0
 )
