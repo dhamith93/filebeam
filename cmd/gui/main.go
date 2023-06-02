@@ -19,7 +19,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:  "FileBeam",
 		Width:  950,
-		Height: 768,
+		Height: 600,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
