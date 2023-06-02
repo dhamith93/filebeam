@@ -6,6 +6,10 @@ export function AddToQueue(arg1, arg2, arg3) {
   return window['go']['main']['App']['AddToQueue'](arg1, arg2, arg3);
 }
 
+export function CancelTransfer(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CancelTransfer'](arg1, arg2, arg3);
+}
+
 export function GetDevices() {
   return window['go']['main']['App']['GetDevices']();
 }
@@ -24,4 +28,8 @@ export function GetIp() {
 
 export function GetKey() {
   return window['go']['main']['App']['GetKey']();
+}
+
+export function GetTransfers() {
+  return window['go']['main']['App']['GetTransfers']();
 }
