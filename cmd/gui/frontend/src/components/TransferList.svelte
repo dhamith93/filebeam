@@ -1,7 +1,10 @@
 <script>
+    import {getNotificationsContext} from 'svelte-notifications';
     import {GetTransfers} from '../../wailsjs/go/main/App.js'
     import {CancelTransfer} from '../../wailsjs/go/main/App.js'
     import TransferItem from './TransferItem.svelte';
+
+    const {addNotification} = getNotificationsContext();
 
     export let showTransfers;
     let transfers = [];
@@ -28,8 +31,21 @@
     };
 
     const cancelFunc = (ip, filename, isDownload) => {
-        console.log(ip, filename, isDownload)
-        CancelTransfer(ip, filename, isDownload).catch(e => {console.log(e)});
+        CancelTransfer(ip, filename, isDownload).then(() => {
+            addNotification({
+                text: 'Cancelled the file transfer.',
+                position: 'bottom-center',
+                type: 'success',
+                removeAfter: 5000
+            })
+        }).catch(e => {
+            addNotification({
+                text: e,
+                position: 'bottom-center',
+                type: 'error',
+                removeAfter: 5000
+            })
+        });
     };
 
     $: if (showTransfers) {
@@ -60,7 +76,12 @@
                 });
                 transfers = ts;
             }).catch(e => {
-                console.log(e);
+                addNotification({
+                    text: e,
+                    position: 'bottom-center',
+                    type: 'error',
+                    removeAfter: 5000
+                })
             });
         }, 1000);
     }

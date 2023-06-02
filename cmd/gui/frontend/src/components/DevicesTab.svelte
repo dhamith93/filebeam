@@ -1,8 +1,10 @@
 <script>
+    import {getNotificationsContext} from 'svelte-notifications';
     import {GetHomeDir} from '../../wailsjs/go/main/App.js'
     import {AddToQueue} from '../../wailsjs/go/main/App.js'
     import FileTree from './FileTree.svelte';
     import DeviceTree from './DeviceTree.svelte';
+    const {addNotification} = getNotificationsContext();
     let homeDir = '';
     let selected = [];
     let fileTree;
@@ -12,8 +14,19 @@
         AddToQueue(selected, host, key).then(() => {
             fileTree.clearSelection();
             selected = [];
+            addNotification({
+                text: 'Selected file(s) added to transfer queue',
+                position: 'bottom-center',
+                type: 'success',
+                removeAfter: 5000
+            })
         }).catch(e => {
-            console.log(e);
+            addNotification({
+                text: e,
+                position: 'bottom-center',
+                type: 'error',
+                removeAfter: 5000
+            })
         });
     }
 
@@ -23,7 +36,6 @@
         } else {
             selected.push(item);
         }
-        console.log(selected)
     }
 </script>
 <div id="devices-main">

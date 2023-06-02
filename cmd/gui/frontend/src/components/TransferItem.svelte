@@ -48,11 +48,14 @@
 
 <style>
     #item {
-        width: 400px;
+        width: 450px;
         background-color: rgb(102, 106, 105);
         margin-bottom: 10px;
     }
 
+    .filename {
+        font-weight: bold;
+    }
     p {
         margin: 2px;
     }
