@@ -1,4 +1,5 @@
 <script>
+  import Notifications from 'svelte-notifications';
   import DevicesTab from "./components/DevicesTab.svelte";
   import TransferList from "./components/TransferList.svelte";
   import Modal from "./components/Modal.svelte";
@@ -12,24 +13,27 @@
   GetIp().then(result => ip = result);
 </script>
 
-<main>
-    <div id="meta">
-        <div>
-            <h3>IP: <span class="mono">{ip}</span></h3>  
+<Notifications>
+    <main>
+        <div id="meta">
+            <div>
+                <h3>IP: <span class="mono">{ip}</span></h3>  
+            </div>
+            <div>
+                <h3>Key: <span class="mono">{key}</span></h3>
+            </div>
+            <div>
+                <button on:click={() => (showTransfers = true)}>Transfers</button>
+            </div>
         </div>
-        <div>
-            <h3>Key: <span class="mono">{key}</span></h3>
-        </div>
-        <div>
-            <button on:click={() => (showTransfers = true)}>Transfers</button>
-        </div>
-    </div>
-    <DevicesTab /> 
-</main>
+        <DevicesTab /> 
+    </main>
+    
+    <Modal bind:showTransfers>
+        <TransferList bind:showTransfers />
+    </Modal>
+</Notifications>
 
-<Modal bind:showTransfers>
-    <TransferList bind:showTransfers />
-</Modal>
 
 <style>
     #meta {
