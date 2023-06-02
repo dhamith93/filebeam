@@ -11,6 +11,15 @@
     GetHomeDir().then(result => homeDir = result);
 
     function handleFileUpload(host, key) {
+        if (key.trim() === '') {
+            addNotification({
+                text: 'Key is empty!',
+                position: 'bottom-center',
+                type: 'error',
+                removeAfter: 5000
+            });
+            return
+        }
         AddToQueue(selected, host, key).then(() => {
             fileTree.clearSelection();
             selected = [];
@@ -19,14 +28,14 @@
                 position: 'bottom-center',
                 type: 'success',
                 removeAfter: 5000
-            })
+            });
         }).catch(e => {
             addNotification({
                 text: e,
                 position: 'bottom-center',
                 type: 'error',
                 removeAfter: 5000
-            })
+            });
         });
     }
 
