@@ -37,14 +37,14 @@
                 position: 'bottom-center',
                 type: 'success',
                 removeAfter: 5000
-            })
+            });
         }).catch(e => {
             addNotification({
                 text: e,
                 position: 'bottom-center',
                 type: 'error',
                 removeAfter: 5000
-            })
+            });
         });
     };
 
