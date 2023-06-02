@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -45,12 +44,10 @@ func (f ByTypeAndName) Less(i, j int) bool {
 func getDirectoryContent(path string) ([]File, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	files, err := f.Readdir(0)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
