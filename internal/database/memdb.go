@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dhamith93/SyMon/pkg/memdb"
@@ -27,7 +28,7 @@ func (d *MemDatabase) AddDevice(host string) error {
 }
 
 func (d *MemDatabase) AddIncomingTransfer(src string, file string, fileType string, extension string, size int64) error {
-	return d.Db.Tables["incoming_transfer"].Insert("src, file_name, type, extension, size_bytes, completed_bytes, status", src, file, fileType, extension, size, 0, "processing")
+	return d.Db.Tables["incoming_transfer"].Insert("src, file_name, type, extension, size_bytes, completed_bytes, status", src, file, fileType, extension, size, int64(0), "processing")
 }
 
 func (d *MemDatabase) UpdateIncomingTransferProgress(src string, file string, completed int64) error {
@@ -79,7 +80,7 @@ func (d *MemDatabase) UpdateIncomingTransferEndTime(src string, file string) err
 }
 
 func (d *MemDatabase) AddTransfer(dest string, key string, file string, fileType string, extension string, path string, size int64) error {
-	return d.Db.Tables["transfer"].Insert("dest, key, file_name, type, extension, file_path, size_bytes, completed_bytes, status, stopped", dest, key, file, fileType, extension, path, size, 0, "pending", false)
+	return d.Db.Tables["transfer"].Insert("dest, key, file_name, type, extension, file_path, size_bytes, completed_bytes, status, stopped", dest, key, file, fileType, extension, path, size, int64(0), "pending", "false")
 }
 
 func (d *MemDatabase) UpdateTransferProgress(dest string, file string, completed int64, status string) error {
@@ -143,7 +144,7 @@ func (d *MemDatabase) GetDevices() ([]string, error) {
 
 func (d *MemDatabase) GetIncomingTransfers() ([]IncomingTransfer, error) {
 	output := []IncomingTransfer{}
-	res := d.Db.Tables["device"].Where("size_bytes", ">", "completed_bytes").Select("*")
+	res := d.Db.Tables["device"].Where("size_bytes", ">", "completed_bytes").Select("src, file_name, size_bytes, completed_bytes")
 
 	for _, row := range res.Rows {
 		output = append(output, IncomingTransfer{
@@ -168,8 +169,9 @@ func (d *MemDatabase) GetFilePath(dest string, name string) string {
 
 func (d *MemDatabase) GetPendingTransfers() ([]file.File, error) {
 	output := []file.File{}
-	res := d.Db.Tables["transfer"].Where("status", "==", "pending").Select("*")
+	res := d.Db.Tables["transfer"].Where("status", "==", "pending").Select("dest, key, file_name, file_path, type, extension, size_bytes")
 	for _, row := range res.Rows {
+		fmt.Println(row.Columns)
 		output = append(output, file.File{
 			Dest:      row.Columns["dest"].StringVal,
 			Key:       row.Columns["key"].StringVal,
