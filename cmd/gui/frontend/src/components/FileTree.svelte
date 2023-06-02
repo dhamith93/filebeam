@@ -11,6 +11,15 @@
     let history = [];
     let content = [];
 
+    export const clearSelection = () => {
+        content.forEach(i => {
+            if (i.Selected) {
+                i.Selected.classList.remove('selected');
+            }
+        });
+        selected = [];
+    }
+
     function refreshPath(p) {
         GetDirectoryContent(p)
         .then(result => {

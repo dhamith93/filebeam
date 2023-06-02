@@ -5,11 +5,14 @@
     import DeviceTree from './DeviceTree.svelte';
     let homeDir = '';
     let selected = [];
+    let fileTree;
     GetHomeDir().then(result => homeDir = result);
 
     function handleFileUpload(host, key) {
-        console.log(host, key);
-        AddToQueue(selected, host, key).catch(e => {
+        AddToQueue(selected, host, key).then(() => {
+            fileTree.clearSelection();
+            selected = [];
+        }).catch(e => {
             console.log(e);
         });
     }
@@ -24,7 +27,7 @@
     }
 </script>
 <div id="devices-main">
-    <FileTree path="{homeDir}" onFileSelect={handleFileSelect}/>
+    <FileTree path="{homeDir}" onFileSelect={handleFileSelect} bind:this={fileTree}/>
     <DeviceTree onFileUpload={handleFileUpload} />
 </div>
 
