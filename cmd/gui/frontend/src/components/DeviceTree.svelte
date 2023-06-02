@@ -4,6 +4,7 @@
     import {GetDevices} from '../../wailsjs/go/main/App.js'
     import DeviceListItem from './DeviceListItem.svelte';
 
+    export let onFileUpload;
     let devices = [];
     function refreshDeviceList() {
         GetDevices().then(result => {
@@ -11,7 +12,7 @@
                 result.forEach(d => {
                     newDevices.push({
                         host: d,
-                        func: () => console.log(d),
+                        onFileUpload: onFileUpload,
                         component: DeviceListItem
                     });
             });
@@ -49,6 +50,6 @@
     }
 
     #device-tree {
-        overflow: scroll;
+        overflow-y: scroll;
     }
 </style>
