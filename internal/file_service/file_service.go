@@ -87,7 +87,7 @@ func (f *FileService) Receive(file file.File) error {
 
 		for {
 			if f.Database.IsIncomingTransferStopped(ip, file.Name) {
-				f.Database.UpdateIncomingTransferStatus(ip, file.Name, "cancelled")
+				f.Database.UpdateIncomingTransferEndTime(ip, file.Name)
 				return fmt.Errorf("download_canceled")
 			}
 			n, err := c.Read(buf)
@@ -100,7 +100,11 @@ func (f *FileService) Receive(file file.File) error {
 					f.Database.UpdateIncomingTransferStatus(ip, file.Name, "cannot_read_incoming_file")
 					return err
 				}
-				f.Database.UpdateIncomingTransferStatus(ip, file.Name, "completed")
+				if file.Size == int64(completed) {
+					f.Database.UpdateIncomingTransferStatus(ip, file.Name, "completed")
+				} else {
+					f.Database.UpdateIncomingTransferStatus(ip, file.Name, "cancelled")
+				}
 				return nil
 			}
 			completed += n
