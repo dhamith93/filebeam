@@ -1,7 +1,7 @@
 <script>
     import Icon from 'svelte-icons-pack/Icon.svelte';
     import VscCloudUpload from "svelte-icons-pack/vsc/VscCloudUpload";
-	export let host;
+    export let host;
     export let onFileUpload;
     let key;
 </script>

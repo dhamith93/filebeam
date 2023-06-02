@@ -1,5 +1,6 @@
 <script>
     import {GetHomeDir} from '../../wailsjs/go/main/App.js'
+    import {AddToQueue} from '../../wailsjs/go/main/App.js'
     import FileTree from './FileTree.svelte';
     import DeviceTree from './DeviceTree.svelte';
     let homeDir = '';
@@ -8,6 +9,9 @@
 
     function handleFileUpload(host, key) {
         console.log(host, key);
+        AddToQueue(selected, host, key).catch(e => {
+            console.log(e);
+        });
     }
 
     function handleFileSelect(item) {

@@ -4,7 +4,6 @@
     import VscArrowUp from "svelte-icons-pack/vsc/VscArrowUp";
     import VscStopCircle from "svelte-icons-pack/vsc/VscStopCircle";
     import ProgressBar from "@okrad/svelte-progressbar"
-    export let transfer = {};
     export let filename;
     export let ip;
     export let completedSize;
