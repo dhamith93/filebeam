@@ -78,6 +78,10 @@ func (d *MemDatabase) UpdateIncomingTransferEndTime(src string, file string) err
 	return res.Error
 }
 
+func (d *MemDatabase) AddTransfer(dest string, key string, file string, fileType string, extension string, path string, size int64) error {
+	return d.Db.Tables["transfer"].Insert("dest, key, file_name, type, extension, file_path, size_bytes, completed_bytes, status, stopped", dest, key, file, fileType, extension, path, size, 0, "processing", false)
+}
+
 func (d *MemDatabase) UpdateTransferProgress(dest string, file string, completed int64, status string) error {
 	res := d.Db.Tables["transfer"].Where("file_path", "==", file).And("dest", "==", dest)
 
