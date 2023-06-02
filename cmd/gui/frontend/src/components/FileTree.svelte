@@ -6,9 +6,10 @@
     import VscArrowRight from "svelte-icons-pack/vsc/VscArrowRight";
     import {GetDirectoryContent} from '../../wailsjs/go/main/App.js'
 	export let path;
+    export let onFileSelect;
+    let selected = [];
     let history = [];
     let content = [];
-    let selected = [];
 
     function refreshPath(p) {
         GetDirectoryContent(p)
@@ -29,6 +30,7 @@
             path = item.Path;
             refreshPath(path);
         } else {
+            onFileSelect(item)
             if (selected.includes(item)) {
                 selected.splice(selected.indexOf(item), 1);
                 item.Selected.classList.remove('selected');
@@ -36,7 +38,6 @@
                 selected.push(item);
                 item.Selected.classList.add('selected');
             }
-            console.log(selected)
         }
     }
     function handleBackBtnClick() {

@@ -2,6 +2,8 @@
     import Icon from 'svelte-icons-pack/Icon.svelte';
     import VscCloudUpload from "svelte-icons-pack/vsc/VscCloudUpload";
 	export let host;
+    export let onFileUpload;
+    let key;
 </script>
 
 <style>
@@ -44,8 +46,8 @@
 
 <div>
     <p>{host}</p>
-    <input type="text" placeholder="key">
-    <button class="upload-btn">
+    <input type="text" placeholder="key" bind:value={key}>
+    <button class="upload-btn" on:click={onFileUpload(host, key)}>
         <Icon src="{VscCloudUpload}" />
     </button>
 </div>
