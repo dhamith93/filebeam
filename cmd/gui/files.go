@@ -14,7 +14,6 @@ type File struct {
 	Size         int64
 	LastModified int64
 	IsDir        bool
-	Selected     bool
 }
 
 type ByTypeAndName []File
@@ -63,7 +62,6 @@ func getDirectoryContent(path string) ([]File, error) {
 			Size:         v.Size(),
 			IsDir:        v.IsDir(),
 			LastModified: v.ModTime().Unix(),
-			Selected:     false,
 		})
 	}
 

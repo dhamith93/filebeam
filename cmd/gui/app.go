@@ -11,6 +11,7 @@ import (
 
 	"github.com/dhamith93/share_core/internal/api"
 	"github.com/dhamith93/share_core/internal/database"
+	"github.com/dhamith93/share_core/internal/file"
 	"github.com/dhamith93/share_core/internal/system"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -108,11 +109,6 @@ func (a *App) domready(ctx context.Context) {
 
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
-
 func (a *App) GetDevices() []string {
 	devices, err := a.db.GetDevices()
 	if err != nil {
@@ -135,6 +131,18 @@ func (a *App) GetKey() string {
 
 func (a *App) GetIp() string {
 	return system.GetIp()
+}
+
+func (a *App) AddToQueue(files []File, host string, key string) error {
+	fmt.Println(files)
+	for _, f := range files {
+		file := file.CreateFile(f.Path)
+		err := a.db.AddIncomingTransfer(host, file.Name, file.Type, file.Extension, file.Size)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, context.Context, context.CancelFunc) {
