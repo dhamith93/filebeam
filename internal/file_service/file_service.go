@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -59,7 +60,8 @@ func (f *FileService) Receive(file file.File) error {
 		defer c.Close()
 		ip := strings.Split(c.RemoteAddr().String(), ":")[0]
 
-		fo, err := os.Create(file.Name)
+		homeDir, _ := os.UserHomeDir()
+		fo, err := os.Create(filepath.Join(homeDir, "Downloads", file.Name))
 		if err != nil {
 			f.Database.UpdateIncomingTransferStatus(ip, file.Name, "cannot_create_file")
 			return err
