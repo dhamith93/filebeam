@@ -60,7 +60,9 @@
 <div id="main">
     <h3>File browser</h3>
     <div id="address-bar">
-        <button on:click={handleBackBtnClick}><Icon src="{VscArrowLeft}" /></button> <input type="text" name="path" id="path" bind:value={path}> <button on:click={() => {refreshPath(path)}}><Icon src="{VscArrowRight}" /></button>
+        <button on:click={handleBackBtnClick}><Icon src="{VscArrowLeft}" /></button> 
+        <input type="text" name="path" id="path" bind:value={path}> 
+        <button on:click={() => {refreshPath(path)}}><Icon src="{VscArrowRight}" /></button>
     </div>
     <div id="file-tree">
         {#each content as item}
@@ -119,6 +121,8 @@
     }
 
     #path {
+        font-family: 'JetBrains Mono';
+        font-size: 1em;
         min-width: 400px;
         height: 1rem;
         margin-left: 10px;
