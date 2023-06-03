@@ -45,7 +45,7 @@
         height: 40px;
     }
 
-    .mono {
-        font-family: monospace;
+    h3 {
+        font-family: 'JetBrains Mono';
     }
 </style>
