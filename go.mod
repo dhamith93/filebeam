@@ -1,4 +1,4 @@
-module github.com/dhamith93/share_core
+module github.com/dhamith93/filebeam
 
 go 1.20
 

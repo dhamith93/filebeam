@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhamith93/share_core/internal/database"
-	"github.com/dhamith93/share_core/internal/file"
+	"github.com/dhamith93/filebeam/internal/database"
+	"github.com/dhamith93/filebeam/internal/file"
 )
 
 type ReaderPassThru struct {

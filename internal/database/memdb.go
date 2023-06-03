@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/dhamith93/SyMon/pkg/memdb"
-	"github.com/dhamith93/share_core/internal/file"
+	"github.com/dhamith93/filebeam/internal/file"
 )
 
 type MemDatabase struct {
