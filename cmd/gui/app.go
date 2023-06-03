@@ -38,15 +38,9 @@ func (a *App) startup(ctx context.Context) {
 	a.listeningPort = "9292"
 	a.db = database.MemDatabase{}
 	a.db.CreateDB()
-	// defer a.db.Db.Close()
-
 	a.apiServer = api.Server{Database: &a.db, Key: generateKey(6)}
 
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-
 	go func() {
-		// defer wg.Done()
 		lis, err := net.Listen("tcp", ":"+a.listeningPort)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
@@ -224,11 +218,11 @@ func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, con
 func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 	ips := system.GetLocalIPs()
 	var wg sync.WaitGroup
-	wg.Add(len(ips))
+	wg.Add(len(ips) - 1)
 	for _, ip := range ips {
-		// if ip == system.GetIp() {
-		// 	continue
-		// }
+		if ip == system.GetIp() {
+			continue
+		}
 		go func(ip string, ch chan string) {
 			defer wg.Done()
 			host := ip + ":" + port
