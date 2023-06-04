@@ -5,6 +5,8 @@ import {database} from '../models';
 
 export function AddToQueue(arg1:Array<main.File>,arg2:string,arg3:string):Promise<void>;
 
+export function AmIRunningOnMacos():Promise<boolean>;
+
 export function CancelTransfer(arg1:string,arg2:string,arg3:boolean):Promise<void>;
 
 export function GetDevices():Promise<Array<string>>;

@@ -61,7 +61,7 @@
     <h3>File browser</h3>
     <div id="address-bar">
         <button on:click={handleBackBtnClick}><Icon src="{VscArrowLeft}" /></button> 
-        <input type="text" name="path" id="path" bind:value={path}> 
+        <input type="text" name="path" id="path" bind:value={path} style="--wails-draggable:no-drag"> 
         <button on:click={() => {refreshPath(path)}}><Icon src="{VscArrowRight}" /></button>
     </div>
     <div id="file-tree">

@@ -25,7 +25,7 @@
     }
 
     div input {
-        width: 80px;
+        width: 60px;
         height: 30px;
         font-size: 1em;
         font-family: monospace;

@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"runtime"
 	"sync"
 	"time"
 
@@ -193,6 +194,10 @@ func (a *App) CancelTransfer(ip string, filename string, isDownload bool) error 
 		return a.db.UpdateIncomingTransferStatus(ip, filename, "cancelled")
 	}
 	return a.db.UpdateTransferStatus(ip, filename, "cancelled")
+}
+
+func (a *App) AmIRunningOnMacos() bool {
+	return runtime.GOOS == "darwin"
 }
 
 func getAPIFile(in file.File) *api.File {
