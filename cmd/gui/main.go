@@ -22,13 +22,10 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "FileBeam",
-		Width:     920,
-		Height:    630,
-		MinWidth:  920,
-		MinHeight: 630,
-		MaxWidth:  920,
-		MaxHeight: 630,
+		Title:         "FileBeam",
+		Width:         920,
+		Height:        630,
+		DisableResize: true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
