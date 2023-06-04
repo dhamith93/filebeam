@@ -6,6 +6,10 @@ export function AddToQueue(arg1, arg2, arg3) {
   return window['go']['main']['App']['AddToQueue'](arg1, arg2, arg3);
 }
 
+export function AmIRunningOnMacos() {
+  return window['go']['main']['App']['AmIRunningOnMacos']();
+}
+
 export function CancelTransfer(arg1, arg2, arg3) {
   return window['go']['main']['App']['CancelTransfer'](arg1, arg2, arg3);
 }
