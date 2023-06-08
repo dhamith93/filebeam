@@ -10,6 +10,7 @@ import (
 	"github.com/dhamith93/filebeam/internal/database"
 	"github.com/dhamith93/filebeam/internal/file"
 	fileservice "github.com/dhamith93/filebeam/internal/file_service"
+	"github.com/dhamith93/filebeam/internal/queue"
 	"github.com/dhamith93/filebeam/internal/system"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,20 +23,26 @@ type Server struct {
 	FileService fileservice.FileService
 	PendingFile string
 	Database    *database.MemDatabase
+	Queue       *queue.Queue
 	UnimplementedFileServiceServer
 }
 
 func (s *Server) Init() {
 	s.FileService = fileservice.FileService{}
+	queue := queue.CreateQueue()
+	s.Queue = &queue
 }
 
 func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*FilePushResponse, error) {
+	queue := queue.CreateQueue()
+	s.Queue = &queue
 	if fileRequest.Key != s.Key {
 		return nil, fmt.Errorf("key does not match")
 	}
 	p, _ := peer.FromContext(ctx)
 	ip := strings.Split(p.Addr.String(), ":")[0]
 	s.FileService.Database = s.Database
+	s.FileService.Queue = s.Queue
 	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Type, fileRequest.File.Extension, fileRequest.File.Size)
 	go s.FileService.Receive(s.getFileStruct("", fileRequest.File))
 	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
@@ -44,6 +51,7 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
 	s.FileService.Database = s.Database
+	s.FileService.Queue = s.Queue
 	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.Host, fileResponse.File))
 	return &Void{}, nil
 }
