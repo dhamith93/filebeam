@@ -3,8 +3,9 @@ module github.com/dhamith93/filebeam/cmd/gui
 go 1.18
 
 require (
-	github.com/dhamith93/filebeam v0.1.4
+	github.com/dhamith93/filebeam v0.1.6-0.20230608125656-fb58441fc99c
 	github.com/wailsapp/wails/v2 v2.5.1
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17
 	google.golang.org/grpc v1.55.0
 )
 
@@ -31,7 +32,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect

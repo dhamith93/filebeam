@@ -51,16 +51,17 @@
     $: if (showTransfers) {
         setInterval(() => {
             GetTransfers().then((res) => {
+                console.log(res);
                 let ts = [];
                 res.forEach(t => {
-                    let endTime = (t.EndTime === '') ? Math.floor(Date.now() / 1000) : t.EndTime;
+                    let endTime = (t.EndTime === 0) ? Math.floor(Date.now() / 1000) : t.EndTime;
                     let timeDiff = endTime - t.StartTime;
                     let speed = calculateSpeed(timeDiff, t.CompletedBytes);
                     let estimated = (t.SizeBytes - t.CompletedBytes) / speed;
                     ts.push({
                         component: TransferItem,
-                        filename: t.Name,
-                        path: t.Path,
+                        filename: t.File.Name,
+                        path: t.File.Path,
                         ip: t.Ip,
                         size: `${(t.SizeBytes / 1024 / 1024).toFixed(2)} MB`,
                         completedSize: `${(t.CompletedBytes / 1024 / 1024).toFixed(2)} MB`,
@@ -68,7 +69,7 @@
                         timeSpent: convertToHumanReadableTime(timeDiff.toFixed(2)),
                         speed: (speed > 1000000) ? `${(speed/1024/1024).toFixed(2)} MB/s` : `${(speed/1024).toFixed(2)} KB/s`,
                         done: (t.CompletedBytes / t.SizeBytes) * 100,
-                        isDownload: t.IsDownload,
+                        isDownload: t.File.Key === '' && t.File.Path === '',
                         isCanceled: t.Status === 'cancelled' || t.Status === 'error',
                         status: t.Status,
                         cancelFunc: cancelFunc
