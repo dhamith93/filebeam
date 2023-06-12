@@ -35,7 +35,7 @@ func (d *MemDatabase) AddDevice(host string) error {
 }
 
 func (d *MemDatabase) AddIncomingTransfer(src string, file string, fileType string, extension string, size int64) error {
-	return d.Db.Tables["incoming_transfer"].Insert("src, file_name, type, extension, size_bytes, completed_bytes, status, start_time, end_time", src, file, fileType, extension, size, int64(0), "processing", "", "")
+	return d.Db.Tables["incoming_transfer"].Insert("src, file_name, type, extension, size_bytes, completed_bytes, status, start_time, end_time", src, file, fileType, extension, size, int64(0), "pending", "", "")
 }
 
 func (d *MemDatabase) UpdateIncomingTransferProgress(src string, file string, completed int64) error {
