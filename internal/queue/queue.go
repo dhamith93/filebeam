@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ type Transfer struct {
 	FilePort       string
 	File           file.File
 	Status         string
+	Key            string
 	SizeBytes      int64
 	CompletedBytes int64
 	StartTime      int64
@@ -21,164 +21,112 @@ type Transfer struct {
 }
 
 type Queue struct {
-	Upload   []Transfer
-	Download []Transfer
+	Items []Transfer
 }
 
 func CreateQueue() Queue {
 	return Queue{
-		Download: []Transfer{},
-		Upload:   []Transfer{},
+		Items: []Transfer{},
 	}
 }
 
-func (q *Queue) Init() {
-	q.Download = []Transfer{}
-	q.Upload = []Transfer{}
+func (q *Queue) Index(hostArr []string, file file.File) int {
+	idx := -1
+	for i, e := range q.Items {
+		if e.Ip == hostArr[0] && e.FilePort == hostArr[1] && e.File.Path == file.Path {
+			idx = i
+			break
+		}
+	}
+	return idx
 }
 
-func (q *Queue) AddToQueue(host string, file file.File, isDownload bool) {
+func (q *Queue) AddToQueue(host string, key string, file file.File) {
 	hostArr := strings.Split(host, ":")
-	if isDownload {
-		q.Download = append(q.Download, Transfer{
-			Ip:             hostArr[0],
-			FilePort:       hostArr[1],
-			Status:         "pending",
-			SizeBytes:      file.Size,
-			CompletedBytes: 0,
-			StartTime:      0,
-			EndTime:        0,
-		})
-		fmt.Println(q.Download)
-	} else {
-		q.Upload = append(q.Upload, Transfer{
-			Ip:             hostArr[0],
-			FilePort:       hostArr[1],
-			File:           file,
-			Status:         "pending",
-			SizeBytes:      file.Size,
-			CompletedBytes: 0,
-			StartTime:      0,
-			EndTime:        0,
-		})
-		fmt.Println(q.Upload)
-	}
+	q.Items = append(q.Items, Transfer{
+		Ip:             hostArr[0],
+		FilePort:       hostArr[1],
+		File:           file,
+		Status:         "pending",
+		Key:            key,
+		SizeBytes:      file.Size,
+		CompletedBytes: 0,
+		StartTime:      0,
+		EndTime:        0,
+	})
+}
+
+func (q *Queue) Remove(t Transfer) {
+	idx := q.Index([]string{t.Ip, t.FilePort}, t.File)
+	q.Items[idx] = q.Items[len(q.Items)-1]
+	q.Items[len(q.Items)-1] = Transfer{}
+	q.Items = q.Items[:len(q.Items)-1]
 }
 
 func (q *Queue) UpdateTransferProgress(host string, file file.File, completed int64, status string) {
 	hostArr := strings.Split(host, ":")
-	for _, upload := range q.Upload {
-		if upload.Ip == hostArr[0] && upload.FilePort == hostArr[1] && upload.File.Path == file.Path {
-			upload.Status = status
-			upload.CompletedBytes = completed
-			fmt.Println(upload.CompletedBytes)
-		}
-	}
+	idx := q.Index(hostArr, file)
+	q.Items[idx].Status = status
+	q.Items[idx].CompletedBytes = completed
+}
+
+func (q *Queue) UpdateTransferStatus(host string, file file.File, status string) {
+	hostArr := strings.Split(host, ":")
+	idx := q.Index(hostArr, file)
+	q.Items[idx].Status = status
 }
 
 func (q *Queue) UpdateTransferStartTime(host string, file file.File) {
 	hostArr := strings.Split(host, ":")
-	for _, upload := range q.Upload {
-		if upload.Ip == hostArr[0] && upload.FilePort == hostArr[1] && upload.File.Path == file.Path {
-			upload.StartTime = time.Now().Unix()
-			fmt.Println(upload.StartTime)
-		}
-	}
+	idx := q.Index(hostArr, file)
+	q.Items[idx].StartTime = time.Now().Unix()
 }
 
 func (q *Queue) UpdateTransferEndTime(host string, file file.File) {
 	hostArr := strings.Split(host, ":")
-	for _, upload := range q.Upload {
-		if upload.Ip == hostArr[0] && upload.FilePort == hostArr[1] && upload.File.Path == file.Path {
-			upload.EndTime = time.Now().Unix()
-			fmt.Println(upload.StartTime)
-		}
-	}
+	idx := q.Index(hostArr, file)
+	q.Items[idx].EndTime = time.Now().Unix()
+}
+
+func (q *Queue) UpdateFilePortOfTransfer(ip string, oldPort string, newPort string, file file.File) {
+	idx := q.Index([]string{ip, oldPort}, file)
+	q.Items[idx].FilePort = newPort
 }
 
 func (q *Queue) IsTransferStopped(host string, file file.File) bool {
-	fmt.Println(host)
 	hostArr := strings.Split(host, ":")
-	for _, upload := range q.Upload {
-		if upload.Ip == hostArr[0] && upload.FilePort == hostArr[1] && upload.File.Path == file.Path {
-			return upload.Status != "processing"
-		}
-	}
-	return true
+	idx := q.Index(hostArr, file)
+	return q.Items[idx].Status != "processing" && q.Items[idx].Status != "pending"
 }
 
-func (q *Queue) UpdateIncomingTransferProgress(host string, file file.File, completed int64) {
+func (q *Queue) GetFilePath(host string, file file.File) string {
 	hostArr := strings.Split(host, ":")
-	for _, download := range q.Download {
-		if download.Ip == hostArr[0] && download.FilePort == hostArr[1] && download.File.Path == file.Path {
-			download.CompletedBytes = completed
-			fmt.Println(download.CompletedBytes)
+	idx := -1
+	for i, e := range q.Items {
+		if e.Ip == hostArr[0] && e.FilePort == hostArr[1] && e.File.Name == file.Name {
+			idx = i
+			break
 		}
 	}
-}
-
-func (q *Queue) UpdateIncomingTransferStatus(host string, file file.File, status string) {
-	fmt.Println(host)
-	hostArr := strings.Split(host, ":")
-	for _, download := range q.Download {
-		if download.Ip == hostArr[0] && download.FilePort == hostArr[1] && download.File.Path == file.Path {
-			download.Status = status
-			fmt.Println(download.Status)
-		}
-	}
-}
-
-func (q *Queue) UpdateIncomingTransferStartTime(host string, file file.File) {
-	hostArr := strings.Split(host, ":")
-	for _, download := range q.Download {
-		if download.Ip == hostArr[0] && download.FilePort == hostArr[1] && download.File.Path == file.Path {
-			download.StartTime = time.Now().Unix()
-			fmt.Println(download.StartTime)
-		}
-	}
-}
-
-func (q *Queue) UpdateIncomingTransferEndTime(host string, file file.File) {
-	hostArr := strings.Split(host, ":")
-	for _, download := range q.Download {
-		if download.Ip == hostArr[0] && download.FilePort == hostArr[1] && download.File.Path == file.Path {
-			download.EndTime = time.Now().Unix()
-			fmt.Println(download.StartTime)
-		}
-	}
-}
-
-func (q *Queue) IsIncomingTransferStopped(host string, file file.File) bool {
-	fmt.Println(host)
-	hostArr := strings.Split(host, ":")
-	for _, download := range q.Download {
-		if download.Ip == hostArr[0] && download.FilePort == hostArr[1] && download.File.Path == file.Path {
-			return download.Status != "processing"
-		}
-	}
-	return true
-}
-
-func (q *Queue) GetAllTransfers() []Transfer {
-	return append(q.Download, q.Upload...)
+	return q.Items[idx].File.Path
 }
 
 func (q *Queue) GetPendingTransfers() []Transfer {
 	out := []Transfer{}
-	for _, upload := range q.Download {
-		if upload.Status == "pending" {
-			out = append(out, upload)
+	for _, e := range q.Items {
+		if e.Status == "pending" {
+			out = append(out, e)
 		}
 	}
 	return out
 }
 
 func (q *Queue) FileTransfersInProgress(count int) bool {
-	out := []Transfer{}
-	for _, upload := range q.Upload {
-		if upload.Status == "processing" {
-			out = append(out, upload)
+	counter := 0
+	for _, item := range q.Items {
+		if item.Status == "processing" {
+			counter += 1
 		}
 	}
-	return len(out) > count
+	return counter > count
 }

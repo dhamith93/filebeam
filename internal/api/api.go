@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhamith93/filebeam/internal/database"
 	"github.com/dhamith93/filebeam/internal/file"
 	fileservice "github.com/dhamith93/filebeam/internal/file_service"
 	"github.com/dhamith93/filebeam/internal/queue"
@@ -19,40 +18,46 @@ import (
 )
 
 type Server struct {
-	Key         string
-	FileService fileservice.FileService
-	PendingFile string
-	Database    *database.MemDatabase
-	Queue       *queue.Queue
+	Key           string
+	FileService   fileservice.FileService
+	PendingFile   file.File
+	DownloadQueue *queue.Queue
+	UploadQueue   *queue.Queue
 	UnimplementedFileServiceServer
 }
 
-func (s *Server) Init() {
-	s.FileService = fileservice.FileService{}
-	queue := queue.CreateQueue()
-	s.Queue = &queue
+func CreateServer() Server {
+	downloadQueue := queue.CreateQueue()
+	uploadQueue := queue.CreateQueue()
+
+	fileService := fileservice.FileService{}
+	fileService.UploadQueue = &uploadQueue
+	fileService.DownloadQueue = &downloadQueue
+
+	return Server{
+		UploadQueue:   &uploadQueue,
+		DownloadQueue: &downloadQueue,
+		FileService:   fileservice.FileService{},
+	}
 }
 
 func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*FilePushResponse, error) {
-	queue := queue.CreateQueue()
-	s.Queue = &queue
 	if fileRequest.Key != s.Key {
 		return nil, fmt.Errorf("key does not match")
 	}
 	p, _ := peer.FromContext(ctx)
 	ip := strings.Split(p.Addr.String(), ":")[0]
-	s.FileService.Database = s.Database
-	s.FileService.Queue = s.Queue
-	s.Database.AddIncomingTransfer(ip, fileRequest.File.Name, fileRequest.File.Type, fileRequest.File.Extension, fileRequest.File.Size)
-	go s.FileService.Receive(s.getFileStruct("", fileRequest.File))
+	s.FileService.DownloadQueue = s.DownloadQueue
+	go s.FileService.Receive(s.getFileStruct(fileRequest.File))
 	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
 	return &FilePushResponse{Accepted: true}, nil
 }
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
-	s.FileService.Database = s.Database
-	s.FileService.Queue = s.Queue
-	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.Host, fileResponse.File))
+	s.FileService.UploadQueue = s.UploadQueue
+	s.UploadQueue.AddToQueue(fileResponse.Host+":"+fileResponse.Port, "", s.PendingFile)
+	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.PendingFile)
+	// s.UploadQueue.UpdateFilePortOfTransfer(fileResponse.Host, "xxxx", fileResponse.Port, file)
 	return &Void{}, nil
 }
 
@@ -60,15 +65,37 @@ func (s *Server) Hello(ctx context.Context, void *Void) (*Void, error) {
 	return &Void{}, nil
 }
 
-func (s *Server) getFileStruct(dest string, in *File) file.File {
-	path := s.Database.GetFilePath(dest, in.Name)
+func (s *Server) PushFile(host string, f file.File) error {
+	conn, c, ctx, cancel := createClient(host)
+	if conn == nil {
+		return fmt.Errorf("error creating connection")
+	}
+	defer conn.Close()
+	defer cancel()
+	s.PendingFile = f
+	_, err := c.FilePush(ctx, &FilePushRequest{File: s.getAPIFile(f), Key: f.Key, Port: strings.Split(host, ":")[1]})
+	if err != nil {
+		s.PendingFile = file.File{}
+	}
+	return err
+}
+
+func (s *Server) getFileStruct(in *File) file.File {
 	return file.File{
 		Id:        in.Id,
 		Name:      in.Name,
 		Type:      in.Type,
 		Extension: in.Extension,
 		Size:      in.Size,
-		Path:      path,
+	}
+}
+
+func (s *Server) getAPIFile(in file.File) *File {
+	return &File{
+		Name:      in.Name,
+		Size:      in.Size,
+		Type:      in.Type,
+		Extension: in.Extension,
 	}
 }
 
