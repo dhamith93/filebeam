@@ -41,6 +41,9 @@
     {#if done != 100 && !isCanceled}
         <button on:click={cancelFunc(ip, isDownload ? filename : path, isDownload)}>Cancel</button>
     {/if}
+    <!-- {#if isDownload && status === 'pending' && !isCanceled} -->
+        <button on:click={cancelFunc(ip, isDownload ? filename : path, isDownload)}>Download</button>
+    <!-- {/if} -->
     {#if !isCanceled} 
         <ProgressBar series={[done]} colors={['#EE562E']} addBackground={true} bgColor={"#000"}/>
     {/if}

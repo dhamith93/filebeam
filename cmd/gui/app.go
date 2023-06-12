@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/dhamith93/filebeam/internal/api"
-	"github.com/dhamith93/filebeam/internal/database"
 	"github.com/dhamith93/filebeam/internal/file"
+	"github.com/dhamith93/filebeam/internal/queue"
 	"github.com/dhamith93/filebeam/internal/system"
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -21,8 +22,9 @@ import (
 // App struct
 type App struct {
 	ctx           context.Context
-	db            database.MemDatabase
+	devices       []string
 	apiServer     api.Server
+	uploadQueue   queue.Queue
 	listeningPort string
 }
 
@@ -37,9 +39,8 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	a.listeningPort = "9292"
-	a.db = database.MemDatabase{}
-	a.db.CreateDB()
-	a.apiServer = api.Server{Database: &a.db, Key: generateKey(6)}
+	a.apiServer = api.CreateServer()
+	a.apiServer.Key = generateKey(6)
 
 	go func() {
 		lis, err := net.Listen("tcp", ":"+a.listeningPort)
@@ -75,7 +76,7 @@ func (a *App) startup(ctx context.Context) {
 		for {
 			select {
 			case <-ticker2.C:
-				handlePendingTransfers(&a.db, a.listeningPort)
+				a.handlePendingTransfers(a.apiServer.UploadQueue, a.listeningPort)
 			case <-quit2:
 				ticker2.Stop()
 				return
@@ -93,52 +94,31 @@ func (a *App) refreshDevices() {
 		if resp == "done" {
 			break
 		}
-		existing, _ := a.db.GetDevices()
-		exists := false
-		for _, d := range existing {
-			if d == resp {
-				exists = true
-			}
-		}
-		if !exists {
-			err := a.db.AddDevice(resp)
-			if err != nil {
-				log.Println(err)
-			}
+		if !slices.Contains(a.devices, resp) {
+			a.devices = append(a.devices, resp)
 		}
 	}
 }
 
-func handlePendingTransfers(db *database.MemDatabase, listeningPort string) {
-	if db.FileTransfersInProgress(1) {
+func (a *App) handlePendingTransfers(q *queue.Queue, listeningPort string) {
+	if a.uploadQueue.FileTransfersInProgress(1) {
 		return
 	}
-	files, err := db.GetPendingTransfers()
-	if err != nil {
-		log.Fatalf("failed to load transfers: %s", err)
-	}
+	files := a.uploadQueue.GetPendingTransfers()
+
 	for _, f := range files {
-		if !f.IsFile() {
-			db.UpdateTransferStatus(f.Dest, f.Path, "cannot_read_file")
+		if !f.File.IsFile() {
+			a.uploadQueue.UpdateTransferStatus(f.Ip+":"+f.FilePort, f.File, "cannot_read_file")
 			continue
 		}
-		conn, c, ctx, cancel := createClient(f.Dest + ":" + listeningPort)
-		if conn == nil {
-			log.Printf("error creating connection")
-			return
-		}
-		defer conn.Close()
-		defer cancel()
-		_, err := c.FilePush(ctx, &api.FilePushRequest{File: getAPIFile(f), Key: f.Key, Port: listeningPort})
+
+		err := a.apiServer.PushFile(f.Ip+":"+listeningPort, f.File)
+
 		if err != nil {
-			log.Printf("error sending data: %s", err.Error())
-			db.UpdateTransferStatus(f.Dest, f.Path, "error")
-		} else {
-			err = db.UpdateTransferStatus(f.Dest, f.Path, "processing")
-			if err == nil { // successfully set the file to processing
-				break
-			}
+			log.Println(err.Error())
 		}
+		a.uploadQueue.Remove(f)
+		break
 	}
 }
 
@@ -151,11 +131,7 @@ func (a *App) domready(ctx context.Context) {
 }
 
 func (a *App) GetDevices() []string {
-	devices, err := a.db.GetDevices()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	return devices
+	return a.devices
 }
 
 func (a *App) GetDirectoryContent(path string) ([]File, error) {
@@ -174,39 +150,29 @@ func (a *App) GetIp() string {
 	return system.GetIp()
 }
 
-func (a *App) AddToQueue(files []File, host string, key string) error {
+func (a *App) AddToQueue(files []File, host string, key string) {
 	for _, f := range files {
 		file := file.CreateFile(f.Path)
-		err := a.db.AddTransfer(host, key, file.Name, file.Type, file.Extension, file.Path, file.Size)
-		if err != nil {
-			return err
-		}
+		file.Key = key
+		a.uploadQueue.AddToQueue(host+":xxxx", key, file)
+		// a.apiServer.Queue.AddToQueue(host+":xxxx", key, file, false)
 	}
-	return nil
 }
 
-func (a *App) GetTransfers() ([]database.Transfer, error) {
-	return a.db.GetAllTransfers()
+func (a *App) GetTransfers() []queue.Transfer {
+	return append(a.apiServer.DownloadQueue.Items, a.apiServer.UploadQueue.Items...)
 }
 
-func (a *App) CancelTransfer(ip string, filename string, isDownload bool) error {
+func (a *App) CancelTransfer(host string, filename string, isDownload bool) {
 	if isDownload {
-		return a.db.UpdateIncomingTransferStatus(ip, filename, "cancelled")
+		a.apiServer.DownloadQueue.UpdateTransferStatus(host, file.File{Name: filename}, "cancelled")
+	} else {
+		a.apiServer.UploadQueue.UpdateTransferStatus(host, file.File{Path: filename}, "cancelled")
 	}
-	return a.db.UpdateTransferStatus(ip, filename, "cancelled")
 }
 
 func (a *App) AmIRunningOnMacos() bool {
 	return runtime.GOOS == "darwin"
-}
-
-func getAPIFile(in file.File) *api.File {
-	return &api.File{
-		Name:      in.Name,
-		Size:      in.Size,
-		Type:      in.Type,
-		Extension: in.Extension,
-	}
 }
 
 func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, context.Context, context.CancelFunc) {
@@ -223,11 +189,11 @@ func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, con
 func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 	ips := system.GetLocalIPs()
 	var wg sync.WaitGroup
-	wg.Add(len(ips) - 1)
+	wg.Add(len(ips))
 	for _, ip := range ips {
-		if ip == system.GetIp() {
-			continue
-		}
+		// if ip == system.GetIp() {
+		// 	continue
+		// }
 		go func(ip string, ch chan string) {
 			defer wg.Done()
 			host := ip + ":" + port
