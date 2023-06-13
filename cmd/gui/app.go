@@ -197,11 +197,11 @@ func createClient(endpoint string) (*grpc.ClientConn, api.FileServiceClient, con
 func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 	ips := system.GetLocalIPs()
 	var wg sync.WaitGroup
-	wg.Add(len(ips))
+	wg.Add(len(ips) - 1)
 	for _, ip := range ips {
-		// if ip == system.GetIp() {
-		// 	continue
-		// }
+		if ip == system.GetIp() {
+			continue
+		}
 		go func(ip string, ch chan string) {
 			defer wg.Done()
 			host := ip + ":" + port
