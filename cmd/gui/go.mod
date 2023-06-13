@@ -11,7 +11,6 @@ require (
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/dhamith93/SyMon v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
