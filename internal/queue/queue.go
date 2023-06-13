@@ -18,6 +18,7 @@ type Transfer struct {
 	CompletedBytes int64
 	StartTime      int64
 	EndTime        int64
+	IsDownload     bool
 }
 
 type Queue struct {
@@ -41,7 +42,7 @@ func (q *Queue) Index(hostArr []string, file file.File) int {
 	return idx
 }
 
-func (q *Queue) AddToQueue(host string, key string, file file.File) {
+func (q *Queue) AddToQueue(host string, key string, file file.File, isDownload bool) {
 	hostArr := strings.Split(host, ":")
 	q.Items = append(q.Items, Transfer{
 		Ip:             hostArr[0],
@@ -53,6 +54,7 @@ func (q *Queue) AddToQueue(host string, key string, file file.File) {
 		CompletedBytes: 0,
 		StartTime:      0,
 		EndTime:        0,
+		IsDownload:     isDownload,
 	})
 }
 
@@ -109,6 +111,18 @@ func (q *Queue) GetFilePath(host string, file file.File) string {
 		}
 	}
 	return q.Items[idx].File.Path
+}
+
+func (q *Queue) Get(host string, f file.File) Transfer {
+	hostArr := strings.Split(host, ":")
+	idx := -1
+	for i, e := range q.Items {
+		if e.Ip == hostArr[0] && e.FilePort == hostArr[1] && e.File.Name == f.Name {
+			idx = i
+			break
+		}
+	}
+	return q.Items[idx]
 }
 
 func (q *Queue) GetPendingTransfers() []Transfer {

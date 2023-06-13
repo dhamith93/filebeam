@@ -18,6 +18,7 @@ import (
 )
 
 type Server struct {
+	Port          string
 	Key           string
 	FileService   fileservice.FileService
 	PendingFile   file.File
@@ -48,16 +49,15 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 	p, _ := peer.FromContext(ctx)
 	ip := strings.Split(p.Addr.String(), ":")[0]
 	s.FileService.DownloadQueue = s.DownloadQueue
-	go s.FileService.Receive(s.getFileStruct(fileRequest.File))
-	s.sendClearToSend(ip+":"+fileRequest.Port, fileRequest.File)
+	f := s.getFileStruct(fileRequest.File)
+	s.DownloadQueue.AddToQueue(ip+":xxxx", "", f, true)
 	return &FilePushResponse{Accepted: true}, nil
 }
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
 	s.FileService.UploadQueue = s.UploadQueue
-	s.UploadQueue.AddToQueue(fileResponse.Host+":"+fileResponse.Port, "", s.PendingFile)
+	s.UploadQueue.AddToQueue(fileResponse.Host+":"+fileResponse.Port, "", s.PendingFile, false)
 	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.PendingFile)
-	// s.UploadQueue.UpdateFilePortOfTransfer(fileResponse.Host, "xxxx", fileResponse.Port, file)
 	return &Void{}, nil
 }
 
@@ -78,6 +78,23 @@ func (s *Server) PushFile(host string, f file.File) error {
 		s.PendingFile = file.File{}
 	}
 	return err
+}
+
+func (s *Server) StartDownload(host string, filename string) {
+	transfer := s.DownloadQueue.Get(host+":xxxx", file.File{Name: filename})
+	s.DownloadQueue.UpdateTransferStatus(host+":xxxx", transfer.File, "processing")
+	go s.FileService.Receive(transfer.File)
+	s.sendClearToSend(host+":"+s.Port, s.getAPIFile(transfer.File))
+}
+
+func (s *Server) StopDownload(hostWithPort string, filename string) {
+	transfer := s.DownloadQueue.Get(hostWithPort, file.File{Name: filename})
+	s.DownloadQueue.UpdateTransferStatus(hostWithPort, transfer.File, "cancelled")
+}
+
+func (s *Server) StopUpload(hostWithPort string, filename string) {
+	transfer := s.UploadQueue.Get(hostWithPort, file.File{Name: filename})
+	s.UploadQueue.UpdateTransferStatus(hostWithPort, transfer.File, "cancelled")
 }
 
 func (s *Server) getFileStruct(in *File) file.File {
