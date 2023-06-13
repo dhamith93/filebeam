@@ -2,6 +2,7 @@
     import {getNotificationsContext} from 'svelte-notifications';
     import {GetTransfers} from '../../wailsjs/go/main/App.js'
     import {CancelTransfer} from '../../wailsjs/go/main/App.js'
+    import {DownloadTransfer} from '../../wailsjs/go/main/App.js'
     import TransferItem from './TransferItem.svelte';
 
     const {addNotification} = getNotificationsContext();
@@ -48,6 +49,24 @@
         });
     };
 
+    const downloadFunc = (host, filename) => {
+        DownloadTransfer(host, filename).then(() => {
+            addNotification({
+                text: 'Downloading started.',
+                position: 'bottom-center',
+                type: 'success',
+                removeAfter: 5000
+            });
+        }).catch(e => {
+            addNotification({
+                text: e,
+                position: 'bottom-center',
+                type: 'error',
+                removeAfter: 5000
+            });
+        });
+    };
+
     $: if (showTransfers) {
         setInterval(() => {
             GetTransfers().then((res) => {
@@ -63,16 +82,18 @@
                         filename: t.File.Name,
                         path: t.File.Path,
                         ip: t.Ip,
+                        port: t.FilePort,
                         size: `${(t.SizeBytes / 1024 / 1024).toFixed(2)} MB`,
                         completedSize: `${(t.CompletedBytes / 1024 / 1024).toFixed(2)} MB`,
                         eta: convertToHumanReadableTime(estimated.toFixed(2)),
                         timeSpent: convertToHumanReadableTime(timeDiff.toFixed(2)),
                         speed: (speed > 1000000) ? `${(speed/1024/1024).toFixed(2)} MB/s` : `${(speed/1024).toFixed(2)} KB/s`,
                         done: (t.CompletedBytes / t.SizeBytes) * 100,
-                        isDownload: t.File.Key === '' && t.File.Path === '',
-                        isCanceled: t.Status === 'cancelled' || t.Status === 'error',
+                        isDownload: t.IsDownload,
+                        isCanceled: t.Status === 'cancelled' && t.Status !== 'pending' && t.Status !== 'processing' && t.Status !== 'completes',
                         status: t.Status,
-                        cancelFunc: cancelFunc
+                        cancelFunc: cancelFunc,
+                        downloadFunc: downloadFunc
                     })
                 });
                 transfers = ts;

@@ -40,6 +40,7 @@ func (a *App) startup(ctx context.Context) {
 
 	a.listeningPort = "9292"
 	a.apiServer = api.CreateServer()
+	a.apiServer.Port = a.listeningPort
 	a.apiServer.Key = generateKey(6)
 
 	go func() {
@@ -150,12 +151,15 @@ func (a *App) GetIp() string {
 	return system.GetIp()
 }
 
+func (a *App) GetPendingDownloads() []queue.Transfer {
+	return a.apiServer.DownloadQueue.GetPendingTransfers()
+}
+
 func (a *App) AddToQueue(files []File, host string, key string) {
 	for _, f := range files {
 		file := file.CreateFile(f.Path)
 		file.Key = key
-		a.uploadQueue.AddToQueue(host+":xxxx", key, file)
-		// a.apiServer.Queue.AddToQueue(host+":xxxx", key, file, false)
+		a.uploadQueue.AddToQueue(host+":xxxx", key, file, false)
 	}
 }
 
@@ -165,10 +169,14 @@ func (a *App) GetTransfers() []queue.Transfer {
 
 func (a *App) CancelTransfer(host string, filename string, isDownload bool) {
 	if isDownload {
-		a.apiServer.DownloadQueue.UpdateTransferStatus(host, file.File{Name: filename}, "cancelled")
+		a.apiServer.StopDownload(host, filename)
 	} else {
-		a.apiServer.UploadQueue.UpdateTransferStatus(host, file.File{Path: filename}, "cancelled")
+		a.apiServer.StopUpload(host, filename)
 	}
+}
+
+func (a *App) DownloadTransfer(host string, filename string) {
+	a.apiServer.StartDownload(host, filename)
 }
 
 func (a *App) AmIRunningOnMacos() bool {

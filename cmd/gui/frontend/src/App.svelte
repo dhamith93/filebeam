@@ -1,19 +1,25 @@
 <script>
   import Notifications from 'svelte-notifications';
-  import DevicesTab from "./components/DevicesTab.svelte";
-  import TransferList from "./components/TransferList.svelte";
-  import Modal from "./components/Modal.svelte";
+  import DevicesTab from './components/DevicesTab.svelte';
+  import TransferList from './components/TransferList.svelte';
+  import Modal from './components/Modal.svelte';
   import {GetKey} from '../wailsjs/go/main/App.js';
   import {GetIp} from '../wailsjs/go/main/App.js';
   import {AmIRunningOnMacos} from '../wailsjs/go/main/App.js';
+  import {GetPendingDownloads} from '../wailsjs/go/main/App.js';
 
   let ip = '';
   let key = '';
   let showTransfers = false;
   let amIrunningOnMacos = false;
+  let pendingDownloadCount = 0;
   GetKey().then(result => key = result);
   GetIp().then(result => ip = result);
   AmIRunningOnMacos().then(result => amIrunningOnMacos = result);
+  GetPendingDownloads().then(result => pendingDownloadCount = result.length);
+  setInterval(() => {
+    GetPendingDownloads().then(result => pendingDownloadCount = result.length);
+  }, 500);
 </script>
 
 <Notifications>
@@ -31,7 +37,12 @@
                 <h3>Key: <span class="mono">{key}</span></h3>
             </div>
             <div>
-                <button on:click={() => (showTransfers = true)}>Transfers</button>
+                <button on:click={() => (showTransfers = true)}>
+                    Transfers 
+                    {#if pendingDownloadCount > 0}
+                        <span class="badge">{pendingDownloadCount}</span>
+                    {/if}
+                </button>
             </div>
         </div>
         <DevicesTab /> 
