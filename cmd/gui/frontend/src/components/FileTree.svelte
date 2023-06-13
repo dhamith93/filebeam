@@ -7,6 +7,7 @@
     import {GetDirectoryContent} from '../../wailsjs/go/main/App.js'
 	export let path;
     export let onFileSelect;
+    export let onRefreshPath;
     let selected = [];
     let history = [];
     let content = [];
@@ -28,6 +29,7 @@
                     item.Selected.classList.remove('selected');
                 })
                 selected = [];
+                onRefreshPath();
             })
             .catch(e => {
                 alert('Cannot open given path. Please check the path and try again.');

@@ -46,9 +46,12 @@
             selected.push(item);
         }
     }
+    function handlePathRefresh() {
+        selected = [];
+    }
 </script>
 <div id="devices-main">
-    <FileTree path="{homeDir}" onFileSelect={handleFileSelect} bind:this={fileTree}/>
+    <FileTree path="{homeDir}" onFileSelect={handleFileSelect} onRefreshPath={handlePathRefresh} bind:this={fileTree}/>
     <DeviceTree onFileUpload={handleFileUpload} />
 </div>
 
