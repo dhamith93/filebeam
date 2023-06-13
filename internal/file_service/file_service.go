@@ -59,7 +59,9 @@ func (f *FileService) Receive(file file.File) error {
 			return err
 		}
 		defer c.Close()
-		f.DownloadQueue.AddToQueue(c.RemoteAddr().String(), "", file)
+		newHost := strings.Split(c.RemoteAddr().String(), ":")
+		f.DownloadQueue.UpdateFilePortOfTransfer(newHost[0], "xxxx", newHost[1], file)
+		// f.DownloadQueue.AddToQueue(c.RemoteAddr().String(), "", file)
 
 		homeDir, _ := os.UserHomeDir()
 		fo, err := os.Create(filepath.Join(homeDir, "Downloads", file.Name))
