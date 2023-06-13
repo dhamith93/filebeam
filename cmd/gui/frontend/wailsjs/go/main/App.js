@@ -14,6 +14,10 @@ export function CancelTransfer(arg1, arg2, arg3) {
   return window['go']['main']['App']['CancelTransfer'](arg1, arg2, arg3);
 }
 
+export function DownloadTransfer(arg1, arg2) {
+  return window['go']['main']['App']['DownloadTransfer'](arg1, arg2);
+}
+
 export function GetDevices() {
   return window['go']['main']['App']['GetDevices']();
 }
@@ -32,6 +36,10 @@ export function GetIp() {
 
 export function GetKey() {
   return window['go']['main']['App']['GetKey']();
+}
+
+export function GetPendingDownloads() {
+  return window['go']['main']['App']['GetPendingDownloads']();
 }
 
 export function GetTransfers() {

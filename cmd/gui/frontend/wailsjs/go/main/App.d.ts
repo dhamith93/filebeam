@@ -9,6 +9,8 @@ export function AmIRunningOnMacos():Promise<boolean>;
 
 export function CancelTransfer(arg1:string,arg2:string,arg3:boolean):Promise<void>;
 
+export function DownloadTransfer(arg1:string,arg2:string):Promise<void>;
+
 export function GetDevices():Promise<Array<string>>;
 
 export function GetDirectoryContent(arg1:string):Promise<Array<main.File>>;
@@ -18,5 +20,7 @@ export function GetHomeDir():Promise<string>;
 export function GetIp():Promise<string>;
 
 export function GetKey():Promise<string>;
+
+export function GetPendingDownloads():Promise<Array<queue.Transfer>>;
 
 export function GetTransfers():Promise<Array<queue.Transfer>>;

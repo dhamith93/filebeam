@@ -34,6 +34,7 @@ body {
 }
 
 button {
+    position: relative;
     align-items: center;
     background-color: #FFFFFF;
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -74,4 +75,21 @@ button:active {
     box-shadow: rgba(0, 0, 0, 0.06) 0 2px 4px;
     color: rgba(0, 0, 0, 0.65);
     transform: translateY(0);
+}
+
+.badge {
+	border-radius: 50%;
+	width: 25px;
+	height: 25px;
+	display: block;
+	position: absolute;
+	background: rgb(91, 112, 118);
+    color: #fff;
+	border: 2px solid white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	top: -20px;
+	right: -20px;
+	transition: all .3s;
 }

@@ -7,6 +7,7 @@
     export let filename;
     export let path;
     export let ip;
+    export let port;
     export let completedSize;
     export let size;
     export let eta;
@@ -17,10 +18,14 @@
     export let status;
     export let timeSpent;
     export let cancelFunc;
+    export let downloadFunc;
     let icnSrc = isDownload ? VscArrowDown : VscArrowUp;
 </script>
 <div id="item">
     <p class="filename">{filename}</p>
+    {#if path !== ''}
+        {path}
+    {/if}
     <p>
         <Icon src="{icnSrc}" /> {ip}
     </p>
@@ -28,7 +33,7 @@
         {completedSize} / {size} 
     </p>
     <p>
-        {#if !isCanceled}
+        {#if !isCanceled && status !== 'pending'}
             ETA: {eta} | Spent: {timeSpent}
         {/if}
     </p>
@@ -39,11 +44,11 @@
         {status.toUpperCase()}
     </p>
     {#if done != 100 && !isCanceled}
-        <button on:click={cancelFunc(ip, isDownload ? filename : path, isDownload)}>Cancel</button>
+        <button on:click={cancelFunc(ip+":"+port, filename, isDownload)}>Cancel</button>
     {/if}
-    <!-- {#if isDownload && status === 'pending' && !isCanceled} -->
-        <button on:click={cancelFunc(ip, isDownload ? filename : path, isDownload)}>Download</button>
-    <!-- {/if} -->
+    {#if isDownload && status === 'pending' && !isCanceled}
+        <button on:click={downloadFunc(ip, filename)}>Download</button>
+    {/if}
     {#if !isCanceled} 
         <ProgressBar series={[done]} colors={['#EE562E']} addBackground={true} bgColor={"#000"}/>
     {/if}
