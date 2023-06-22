@@ -50,7 +50,7 @@
     }
 
     #device-tree {
-        height: 400px;
+        height: 430px;
         width: 340px;
         overflow-y: scroll;
     }

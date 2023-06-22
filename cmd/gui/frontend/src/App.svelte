@@ -31,10 +31,10 @@
         {/if}
         <div id="meta">
             <div>
-                <h3>IP: <span class="mono">{ip}</span></h3>  
+                <h4>IP: <span class="mono">{ip}</span></h4>  
             </div>
             <div>
-                <h3>Key: <span class="mono">{key}</span></h3>
+                <h4>Key: <span class="mono">{key}</span></h4>
             </div>
             <div>
                 <button on:click={() => (showTransfers = true)}>
@@ -72,9 +72,9 @@
         height: 1.5em;
         margin: -10px 0 10px;
         font-weight: bold;
-        cursor: pointer;
+        cursor: default; 
     }
-    h3 {
+    h4 {
         font-family: 'JetBrains Mono';
     }
 </style>

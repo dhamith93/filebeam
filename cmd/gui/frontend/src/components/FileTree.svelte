@@ -57,6 +57,9 @@
             refreshPath(path);
         }
     }
+    setTimeout(() =>{
+        refreshPath(path)
+    }, 100);
 </script>
 
 <div id="main">
@@ -91,9 +94,10 @@
         height: 500px;
     }
     #file-tree {
+        margin-top: 5px;
         max-width: 500px;
         height: 400px;
-        overflow: scroll;
+        overflow-y: scroll;
     }
 
     #file-item {
@@ -120,6 +124,7 @@
     #address-bar {
         display: flex;
         align-items: center;
+        margin-bottom: 5px;
     }
 
     #path {

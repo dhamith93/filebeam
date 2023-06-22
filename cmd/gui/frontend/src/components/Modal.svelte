@@ -1,4 +1,7 @@
 <script>
+    import Icon from 'svelte-icons-pack/Icon.svelte';
+    import VscClose from "svelte-icons-pack/vsc/VscClose";
+
 	export let showTransfers; // boolean
 
 	let dialog; // HTMLDialogElement
@@ -12,10 +15,12 @@
 	on:close={() => (showTransfers = false)}
 	on:click|self={() => dialog.close()}
 >
-	<div on:click|stopPropagation>
-		<slot />
-        <button on:click={() => dialog.close()}>Close</button>
-	</div>
+    <div id="header">
+        <button on:click={() => dialog.close()}><Icon src="{VscClose}" /></button>
+    </div>
+    <div on:click|stopPropagation>
+        <slot />
+    </div>
 </dialog>
 
 <style>
@@ -29,13 +34,13 @@
         color: #fff;
 	}
 	dialog::backdrop {
-		background: rgba(0, 0, 0, 0.3);
+		background: rgba(0, 0, 0, 0.5);
 	}
 	dialog > div {
 		padding: 1em;
 	}
 	dialog[open] {
-		animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		animation: zoom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 	}
 	@keyframes zoom {
 		from {
@@ -56,8 +61,26 @@
 			opacity: 1;
 		}
 	}
+
+    #header {
+        position: fixed;
+        height: 29px;
+        background-color: rgba(137, 172, 243, 0.2);
+        padding: 5px;
+    }
+
     button {
+        height: 25px;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #d90429;
         float: right;
-        margin: 5px;
+        margin-top: 3px;
+    }
+    button:hover {
+        background: #e5e5e5;
+        color: #d90429
     }
 </style>

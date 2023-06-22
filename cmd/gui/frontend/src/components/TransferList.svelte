@@ -70,7 +70,6 @@
     $: if (showTransfers) {
         setInterval(() => {
             GetTransfers().then((res) => {
-                console.log(res);
                 let ts = [];
                 res.forEach(t => {
                     let endTime = (t.EndTime === 0) ? Math.floor(Date.now() / 1000) : t.EndTime;
