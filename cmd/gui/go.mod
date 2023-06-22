@@ -3,7 +3,7 @@ module github.com/dhamith93/filebeam/cmd/gui
 go 1.18
 
 require (
-	github.com/dhamith93/filebeam v0.1.6
+	github.com/dhamith93/filebeam v0.1.7
 	github.com/wailsapp/wails/v2 v2.5.1
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17
 	google.golang.org/grpc v1.55.0
