@@ -6,19 +6,15 @@ import (
 )
 
 func Generate() string {
-	limit := len(words) - 1
-	output := ""
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 4; i++ {
-		randomNumber := rng.Intn(limit)
-		output += words[randomNumber]
-		if i != 3 {
-			output += "-"
-		}
-	}
-	if len(output) >= 16 {
-		return output
-	}
+	output := generateNLengthWord(rng, 4) + "-" + generateNLengthWord(rng, 4) + "-" + generateNLengthWord(rng, 6)
+	return output
+}
 
-	return Generate()
+func generateNLengthWord(rng *rand.Rand, n int) string {
+	word := words[rng.Intn(len(words)-1)]
+	if len(word) == n {
+		return word
+	}
+	return generateNLengthWord(rng, n)
 }
