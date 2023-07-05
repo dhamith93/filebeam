@@ -1,6 +1,8 @@
 package fileservice
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"fmt"
 	"io"
 	"log"
@@ -114,6 +116,98 @@ func (f *FileService) Receive(file file.File) error {
 			}
 			completed += n
 			if _, err := fo.Write(buf[:n]); err != nil {
+				f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, err.Error())
+				return err
+			}
+		}
+	}
+}
+
+func (f *FileService) ReceiveEncrypted(file file.File) error {
+	file.Name = strings.ReplaceAll(file.Name, ":", "_")
+	listener, err := net.Listen("tcp", "0.0.0.0:")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer listener.Close()
+	f.Port = strings.Split(listener.Addr().String(), ":")[3]
+	log.Println("Server listening on: " + listener.Addr().String())
+	for {
+		c, err := listener.Accept()
+		if err != nil {
+			return err
+		}
+		defer c.Close()
+		newHost := strings.Split(c.RemoteAddr().String(), ":")
+		f.DownloadQueue.UpdateFilePortOfTransfer(newHost[0], "xxxx", newHost[1], file)
+		// f.DownloadQueue.AddToQueue(c.RemoteAddr().String(), "", file)
+
+		homeDir, _ := os.UserHomeDir()
+		fo, err := os.Create(filepath.Join(homeDir, "Downloads", file.Name))
+		if err != nil {
+			f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, err.Error())
+			return err
+		}
+		defer fo.Close()
+		// buf := make([]byte, 1024)
+		completed := 0
+
+		// Update progress every second
+		ticker := time.NewTicker(time.Second)
+		quit := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					f.DownloadQueue.UpdateTransferProgress(c.RemoteAddr().String(), file, int64(completed), "processing")
+				case <-quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+
+		f.DownloadQueue.UpdateTransferStartTime(c.RemoteAddr().String(), file)
+
+		block, err := aes.NewCipher([]byte(file.Key))
+		if err != nil {
+			return err
+		}
+
+		iv := make([]byte, aes.BlockSize)
+		if _, err := c.Read(iv); err != nil {
+			log.Fatal(err)
+		}
+
+		stream := cipher.NewCFBDecrypter(block, iv)
+
+		buffer := make([]byte, 4096)
+
+		for {
+			if f.DownloadQueue.IsTransferStopped(c.RemoteAddr().String(), file) {
+				f.DownloadQueue.UpdateTransferEndTime(c.RemoteAddr().String(), file)
+				return fmt.Errorf("download_canceled")
+			}
+			n, err := c.Read(buffer)
+			if err != nil {
+				// stop ticker
+				close(quit)
+				f.DownloadQueue.UpdateTransferProgress(c.RemoteAddr().String(), file, int64(completed), "processing")
+				f.DownloadQueue.UpdateTransferEndTime(c.RemoteAddr().String(), file)
+				if err != io.EOF {
+					f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, err.Error())
+					return err
+				}
+				if int64(completed) >= file.Size {
+					f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, "completed")
+				} else {
+					f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, "cancelled")
+				}
+				return nil
+			}
+			completed += n
+			stream.XORKeyStream(buffer[:n], buffer[:n])
+			if _, err := fo.Write(buffer[:n]); err != nil {
 				f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, err.Error())
 				return err
 			}

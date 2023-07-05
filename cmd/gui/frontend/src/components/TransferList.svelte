@@ -87,7 +87,7 @@
                         eta: convertToHumanReadableTime(estimated.toFixed(2)),
                         timeSpent: convertToHumanReadableTime(timeDiff.toFixed(2)),
                         speed: (speed > 1000000) ? `${(speed/1024/1024).toFixed(2)} MB/s` : `${(speed/1024).toFixed(2)} KB/s`,
-                        done: (t.CompletedBytes / t.SizeBytes) * 100,
+                        done: Math.floor((t.CompletedBytes / t.SizeBytes) * 100),
                         isDownload: t.IsDownload,
                         isCanceled: t.Status === 'cancelled' && t.Status !== 'pending' && t.Status !== 'processing' && t.Status !== 'completes',
                         status: t.Status,

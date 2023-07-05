@@ -41,7 +41,7 @@ func (a *App) startup(ctx context.Context) {
 	a.listeningPort = "9292"
 	a.apiServer = api.CreateServer()
 	a.apiServer.Port = a.listeningPort
-	a.apiServer.Key = generateKey(6)
+	a.apiServer.Key = generateKey(16)
 
 	go func() {
 		lis, err := net.Listen("tcp", ":"+a.listeningPort)

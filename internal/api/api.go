@@ -50,6 +50,7 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 	ip := strings.Split(p.Addr.String(), ":")[0]
 	s.FileService.DownloadQueue = s.DownloadQueue
 	f := s.getFileStruct(fileRequest.File)
+	f.Key = fileRequest.Key
 	s.DownloadQueue.AddToQueue(ip+":xxxx", "", f, true)
 	return &FilePushResponse{Accepted: true}, nil
 }
@@ -83,7 +84,7 @@ func (s *Server) PushFile(host string, f file.File) error {
 func (s *Server) StartDownload(host string, filename string) {
 	transfer := s.DownloadQueue.Get(host+":xxxx", file.File{Name: filename})
 	s.DownloadQueue.UpdateTransferStatus(host+":xxxx", transfer.File, "processing")
-	go s.FileService.Receive(transfer.File)
+	go s.FileService.ReceiveEncrypted(transfer.File)
 	s.sendClearToSend(host+":"+s.Port, s.getAPIFile(transfer.File))
 }
 
