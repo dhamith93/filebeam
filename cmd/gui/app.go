@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net"
 	"runtime"
 	"sync"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/dhamith93/filebeam/internal/api"
 	"github.com/dhamith93/filebeam/internal/file"
+	"github.com/dhamith93/filebeam/internal/keygen"
 	"github.com/dhamith93/filebeam/internal/queue"
 	"github.com/dhamith93/filebeam/internal/system"
 	"golang.org/x/exp/slices"
@@ -41,7 +41,7 @@ func (a *App) startup(ctx context.Context) {
 	a.listeningPort = "9292"
 	a.apiServer = api.CreateServer()
 	a.apiServer.Port = a.listeningPort
-	a.apiServer.Key = generateKey(16)
+	a.apiServer.Key = keygen.Generate()
 
 	go func() {
 		lis, err := net.Listen("tcp", ":"+a.listeningPort)
@@ -221,14 +221,4 @@ func collectLocalDevicesWithServiceRunning(port string, ch chan string) {
 
 	wg.Wait()
 	ch <- "done"
-}
-
-func generateKey(length int) string {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	charset := "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset)-1)]
-	}
-	return string(b)
 }
