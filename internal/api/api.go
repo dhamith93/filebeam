@@ -58,7 +58,7 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
 	s.FileService.UploadQueue = s.UploadQueue
 	s.UploadQueue.AddToQueue(fileResponse.Host+":"+fileResponse.Port, "", s.PendingFile, false)
-	go s.FileService.Send(fileResponse.Host+":"+fileResponse.Port, s.PendingFile)
+	go s.FileService.SendEncrypted(fileResponse.Host+":"+fileResponse.Port, s.PendingFile)
 	return &Void{}, nil
 }
 
