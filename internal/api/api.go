@@ -21,7 +21,6 @@ type Server struct {
 	Port          string
 	Key           string
 	FileService   fileservice.FileService
-	PendingFile   file.File
 	DownloadQueue *queue.Queue
 	UploadQueue   *queue.Queue
 	UnimplementedFileServiceServer
@@ -57,8 +56,9 @@ func (s *Server) FilePush(ctx context.Context, fileRequest *FilePushRequest) (*F
 
 func (s *Server) ClearToSend(ctx context.Context, fileResponse *FilePushResponse) (*Void, error) {
 	s.FileService.UploadQueue = s.UploadQueue
-	s.UploadQueue.AddToQueue(fileResponse.Host+":"+fileResponse.Port, "", s.PendingFile, false)
-	go s.FileService.SendEncrypted(fileResponse.Host+":"+fileResponse.Port, s.PendingFile)
+	s.UploadQueue.UpdateFilePortOfTransfer(fileResponse.Host, "xxxx", fileResponse.Port, s.getFileStruct(fileResponse.File))
+	transfer := s.UploadQueue.Get(fileResponse.Host+":"+fileResponse.Port, s.getFileStruct(fileResponse.File))
+	go s.FileService.SendEncrypted(fileResponse.Host+":"+fileResponse.Port, transfer.File)
 	return &Void{}, nil
 }
 
@@ -73,11 +73,10 @@ func (s *Server) PushFile(host string, f file.File) error {
 	}
 	defer conn.Close()
 	defer cancel()
-	s.PendingFile = f
-	_, err := c.FilePush(ctx, &FilePushRequest{File: s.getAPIFile(f), Key: f.Key, Port: strings.Split(host, ":")[1]})
-	if err != nil {
-		s.PendingFile = file.File{}
-	}
+	file := s.getAPIFile(f)
+	file.Id = int32(len(s.UploadQueue.Items))
+	_, err := c.FilePush(ctx, &FilePushRequest{File: file, Key: f.Key, Port: strings.Split(host, ":")[1]})
+	s.UploadQueue.AddToQueue(strings.Split(host, ":")[0]+":xxxx", "", f, false)
 	return err
 }
 

@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/dhamith93/filebeam/internal/file"
 	"github.com/dhamith93/filebeam/internal/queue"
@@ -64,7 +63,6 @@ func (f *FileService) ReceiveEncrypted(file file.File) error {
 		defer c.Close()
 		newHost := strings.Split(c.RemoteAddr().String(), ":")
 		f.DownloadQueue.UpdateFilePortOfTransfer(newHost[0], "xxxx", newHost[1], file)
-		// f.DownloadQueue.AddToQueue(c.RemoteAddr().String(), "", file)
 
 		homeDir, _ := os.UserHomeDir()
 		fo, err := os.Create(filepath.Join(homeDir, "Downloads", file.Name))
@@ -73,39 +71,24 @@ func (f *FileService) ReceiveEncrypted(file file.File) error {
 			return err
 		}
 		defer fo.Close()
-		// buf := make([]byte, 1024)
 		completed := 0
-
-		// Update progress every second
-		ticker := time.NewTicker(time.Second)
-		quit := make(chan struct{})
-		go func() {
-			for {
-				select {
-				case <-ticker.C:
-					f.DownloadQueue.UpdateTransferProgress(c.RemoteAddr().String(), file, int64(completed), "processing")
-				case <-quit:
-					ticker.Stop()
-					return
-				}
-			}
-		}()
-
-		f.DownloadQueue.UpdateTransferStartTime(c.RemoteAddr().String(), file)
 
 		block, err := aes.NewCipher([]byte(file.Key))
 		if err != nil {
 			return err
 		}
 
-		iv := make([]byte, aes.BlockSize)
-		if _, err := c.Read(iv); err != nil {
-			log.Fatal(err)
+		nonce := make([]byte, block.BlockSize())
+		_, err = c.Read(nonce)
+		if err != nil {
+			return err
 		}
 
-		stream := cipher.NewCFBDecrypter(block, iv)
+		stream := cipher.NewCTR(block, nonce)
 
 		buffer := make([]byte, 4096)
+
+		f.DownloadQueue.UpdateTransferStartTime(c.RemoteAddr().String(), file)
 
 		for {
 			if f.DownloadQueue.IsTransferStopped(c.RemoteAddr().String(), file) {
@@ -114,8 +97,6 @@ func (f *FileService) ReceiveEncrypted(file file.File) error {
 			}
 			n, err := c.Read(buffer)
 			if err != nil {
-				// stop ticker
-				close(quit)
 				f.DownloadQueue.UpdateTransferProgress(c.RemoteAddr().String(), file, int64(completed), "processing")
 				f.DownloadQueue.UpdateTransferEndTime(c.RemoteAddr().String(), file)
 				if err != io.EOF {
@@ -135,14 +116,16 @@ func (f *FileService) ReceiveEncrypted(file file.File) error {
 				f.DownloadQueue.UpdateTransferStatus(c.RemoteAddr().String(), file, err.Error())
 				return err
 			}
+			f.DownloadQueue.UpdateTransferProgress(c.RemoteAddr().String(), file, int64(completed), "processing")
 		}
 	}
 }
 
-func (f *FileService) SendEncrypted(host string, file file.File) {
+func (f *FileService) SendEncrypted(host string, file file.File) error {
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
-		log.Fatal(err)
+		f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
+		return err
 	}
 	defer conn.Close()
 
@@ -150,29 +133,33 @@ func (f *FileService) SendEncrypted(host string, file file.File) {
 	fileToSend, err := os.Open(file.Path)
 	if err != nil {
 		f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-		return
+		return err
 	}
 	defer fileToSend.Close()
 
 	block, err := aes.NewCipher([]byte(file.Key))
 	if err != nil {
 		f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-		return
+		return err
 	}
 
-	iv := make([]byte, aes.BlockSize)
-	_, err = rand.Read(iv)
-	if err != nil {
+	nonce := make([]byte, block.BlockSize())
+	if _, err := rand.Read(nonce); err != nil {
 		f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-		return
+		return err
 	}
 
-	if _, err := conn.Write(iv); err != nil {
+	if _, err := conn.Write(nonce); err != nil {
 		f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-		return
+		return err
 	}
 
-	stream := cipher.NewCFBEncrypter(block, iv)
+	stream := cipher.NewCTR(block, nonce)
+
+	writer := &cipher.StreamWriter{
+		S: stream,
+		W: conn,
+	}
 
 	buffer := make([]byte, 4096)
 	completed := 0
@@ -182,7 +169,7 @@ func (f *FileService) SendEncrypted(host string, file file.File) {
 	for {
 		if f.UploadQueue.IsTransferStopped(host, file) {
 			f.UploadQueue.UpdateTransferProgress(host, file, int64(completed), "upload_canceled")
-			return
+			return err
 		}
 		n, err := fileToSend.Read(buffer)
 		if err != nil {
@@ -190,13 +177,12 @@ func (f *FileService) SendEncrypted(host string, file file.File) {
 				break
 			}
 			f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-			return
+			return err
 		}
 
-		stream.XORKeyStream(buffer[:n], buffer[:n])
-		if _, err := conn.Write(buffer[:n]); err != nil {
+		if _, err := writer.Write(buffer[:n]); err != nil {
 			f.UploadQueue.UpdateTransferProgress(host, file, 0, err.Error())
-			return
+			return err
 		}
 
 		completed += n
@@ -207,4 +193,6 @@ func (f *FileService) SendEncrypted(host string, file file.File) {
 		f.UploadQueue.UpdateTransferProgress(host, file, int64(completed), "completed")
 	}
 	f.UploadQueue.UpdateTransferEndTime(host, file)
+
+	return nil
 }

@@ -32,14 +32,24 @@ func CreateQueue() Queue {
 }
 
 func (q *Queue) Index(hostArr []string, file file.File) int {
-	idx := -1
+	if len(file.Path) == 0 {
+		return q.IndexByName(hostArr, file)
+	}
 	for i, e := range q.Items {
 		if e.Ip == hostArr[0] && e.FilePort == hostArr[1] && e.File.Path == file.Path {
-			idx = i
-			break
+			return i
 		}
 	}
-	return idx
+	return -1
+}
+
+func (q *Queue) IndexByName(hostArr []string, file file.File) int {
+	for i, e := range q.Items {
+		if e.Ip == hostArr[0] && e.FilePort == hostArr[1] && e.File.Name == file.Name {
+			return i
+		}
+	}
+	return -1
 }
 
 func (q *Queue) AddToQueue(host string, key string, file file.File, isDownload bool) {
