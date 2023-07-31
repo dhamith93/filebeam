@@ -22,7 +22,7 @@
     refreshDeviceList()
 </script>
 
-<div id="main">
+<div id="main" class="column is-one-quarter">
     <h3>Devices on network <span><button class="refresh-btn" on:click={refreshDeviceList}><Icon src={VscSync} /></button></span></h3>
     <div id="device-tree">
         {#each devices as device}
@@ -36,9 +36,7 @@
         display: flex;
         flex-direction: column;
         padding: 5px;
-        align-items: center;
-        border: 3px solid rgb(122, 122, 122);
-        height: 500px;
+        width: 356px;
     }
 
     .refresh-btn {
@@ -50,7 +48,7 @@
     }
 
     #device-tree {
-        height: 430px;
+        height: calc(100vh - 129px);
         width: 340px;
         overflow-y: scroll;
     }

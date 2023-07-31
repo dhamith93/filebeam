@@ -62,7 +62,7 @@
     }, 100);
 </script>
 
-<div id="main">
+<div id="main" class="column">
     <h3>File browser</h3>
     <div id="address-bar">
         <button on:click={handleBackBtnClick}><Icon src="{VscArrowLeft}" /></button> 
@@ -90,13 +90,10 @@
 <style>
     #main {
         padding: 5px;
-        border: 3px solid rgb(122, 122, 122);
-        height: 500px;
     }
     #file-tree {
         margin-top: 5px;
-        max-width: 500px;
-        height: 400px;
+        height: calc(100vh - 160px);
         overflow-y: scroll;
     }
 
@@ -125,13 +122,16 @@
         display: flex;
         align-items: center;
         margin-bottom: 5px;
+        margin-top: 14px;
+        padding-left: 5px;
+        padding-right: 5px;
     }
 
     #path {
         font-family: 'JetBrains Mono';
         font-size: 1em;
-        min-width: 400px;
-        height: 1rem;
+        width: 100%;
+        height: 2rem;
         margin-left: 10px;
         margin-right: 10px;
     }

@@ -50,7 +50,7 @@
         selected = [];
     }
 </script>
-<div id="devices-main">
+<div id="devices-main" class="columns">
     <FileTree path="{homeDir}" onFileSelect={handleFileSelect} onRefreshPath={handlePathRefresh} bind:this={fileTree}/>
     <DeviceTree onFileUpload={handleFileUpload} />
 </div>
@@ -59,5 +59,7 @@
     #devices-main {
         display: flex;
         justify-content: center;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 </style>

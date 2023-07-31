@@ -4,17 +4,20 @@
     export let host;
     export let onFileUpload;
     let key;
+
+    function addDashes() {
+        if (key.length === 4 || key.length === 9) {
+            key += '-';
+        }
+    } 
 </script>
 
 <style>
     div {
-        height: 35px;
-        width: 300px;
+        height: 80px;
+        width: 320px;
         padding: 5px;
-        background-color: rgb(247, 247, 247);
-		color: #3f3f3f;
-        border: 2px solid rgb(108, 108, 108);
-        display: flex;
+        display: block;
         align-items: center;
         margin: 5px;
         overflow: hidden;
@@ -25,18 +28,18 @@
     }
 
     div input {
-        width: 60px;
+        width: 200px;
         height: 30px;
         font-size: 1em;
         font-family: monospace;
         border: 1px #3e3e3e solid;
         padding: 0 5px;
+        text-align: center;
     }
 
     .upload-btn {
         background-color: #3c6db2;
         color: #fff;
-        font-size: 2em;
         font-weight: 800;
         height: 35px;
         width: 35px;
@@ -44,9 +47,9 @@
     }
 </style>
 
-<div>
+<div class="box">
     <p>{host}</p>
-    <input type="text" placeholder="key" bind:value={key}>
+    <input type="text" placeholder="key" bind:value={key} on:input={addDashes} maxlength="16">
     <button class="upload-btn" on:click={onFileUpload(host, key)}>
         <Icon src="{VscCloudUpload}" />
     </button>
