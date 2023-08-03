@@ -119,7 +119,6 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        height: 500px;
-        overflow-y: scroll;
+        margin: 5px 0 5px 0;
     }
 </style>

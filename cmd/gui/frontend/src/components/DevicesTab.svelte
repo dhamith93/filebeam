@@ -59,7 +59,7 @@
     #devices-main {
         display: flex;
         justify-content: center;
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 25px;
+        padding-right: 25px;
     }
 </style>

@@ -26,12 +26,13 @@
 <style>
 	dialog {
         background-color: rgba(27, 38, 54, 1);
-		width: 600px;
-        height: 570px;
+		width: 80%;
+        height: 100%;
 		border-radius: 0.2em;
 		border: none;
-		padding: 0;
+		padding: 5px 0 5px 0;
         color: #fff;
+        border-radius: 10px;
 	}
 	dialog::backdrop {
 		background: rgba(0, 0, 0, 0.5);
@@ -64,9 +65,6 @@
 
     #header {
         position: fixed;
-        height: 29px;
-        background-color: rgba(137, 172, 243, 0.2);
-        padding: 5px;
     }
 
     button {

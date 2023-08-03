@@ -3,7 +3,6 @@
     import VscArrowDown from "svelte-icons-pack/vsc/VscArrowDown";
     import VscArrowUp from "svelte-icons-pack/vsc/VscArrowUp";
     import VscStopCircle from "svelte-icons-pack/vsc/VscStopCircle";
-    import ProgressBar from "@okrad/svelte-progressbar"
     export let filename;
     export let path;
     export let ip;
@@ -21,7 +20,7 @@
     export let downloadFunc;
     let icnSrc = isDownload ? VscArrowDown : VscArrowUp;
 </script>
-<div id="item">
+<div id="item" class="box">
     <p class="filename">{filename}</p>
     {#if path !== ''}
         {path}
@@ -44,21 +43,21 @@
         {status.toUpperCase()}
     </p>
     {#if done != 100 && !isCanceled}
-        <button on:click={cancelFunc(ip+":"+port, filename, isDownload)}>Cancel</button>
+        <button class="button is-danger" on:click={cancelFunc(ip+":"+port, filename, isDownload)}>Cancel</button>
     {/if}
     {#if isDownload && status === 'pending' && !isCanceled}
-        <button on:click={downloadFunc(ip, filename)}>Download</button>
+        <button class="button is-primary" on:click={downloadFunc(ip, filename)}>Download</button>
     {/if}
-    {#if !isCanceled} 
-        <ProgressBar series={[done]} colors={['#EE562E']} addBackground={true} bgColor={"#000"}/>
+    {#if !isCanceled}
+        <div class="progress-wrapper">
+            <progress class="progress is-danger" value="{done}" max="100">{done}%</progress>
+        </div>
     {/if}
 </div>
 
 <style>
     #item {
-        width: 450px;
-        background-color: rgb(102, 106, 105);
-        margin-bottom: 10px;
+        width: 80%;
     }
 
     .filename {
@@ -66,5 +65,9 @@
     }
     p {
         margin: 2px;
+    }
+
+    .progress-wrapper {
+        margin: 5px 0 5px 0;
     }
 </style>

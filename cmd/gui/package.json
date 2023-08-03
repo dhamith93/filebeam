@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@okrad/svelte-progressbar": "^2.1.1",
     "svelte-icons-pack": "^2.1.0",
     "svelte-notifications": "^0.9.98"
   }
