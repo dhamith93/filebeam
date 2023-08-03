@@ -5,9 +5,11 @@
     export let onFileUpload;
     let key;
 
-    function addDashes() {
-        if (key.length === 4 || key.length === 9) {
-            key += '-';
+    function addDashes(event) {
+        if (event.key !== 'Backspace') {
+            if (key.length === 4 || key.length === 9) {
+                key += '-';
+            }
         }
     } 
 </script>
@@ -49,7 +51,7 @@
 
 <div class="box">
     <p>{host}</p>
-    <input type="text" placeholder="key" bind:value={key} on:input={addDashes} maxlength="16">
+    <input type="text" placeholder="key" bind:value={key} on:keyup={addDashes} maxlength="16">
     <button class="upload-btn" on:click={onFileUpload(host, key)}>
         <Icon src="{VscCloudUpload}" />
     </button>
