@@ -31,13 +31,13 @@
         {/if}
         <div id="meta">
             <div>
-                <h4>IP: <span class="mono">{ip}</span></h4>  
+                <h3>IP: {ip}</h3>  
             </div>
             <div>
-                <h4>Key: <span class="mono">{key}</span></h4>
+                <h3>Key: {key}</h3>
             </div>
             <div>
-                <button on:click={() => (showTransfers = true)}>
+                <button on:click={() => (showTransfers = true)} class="button is-info">
                     Transfers 
                     {#if pendingDownloadCount > 0}
                         <span class="badge">{pendingDownloadCount}</span>
@@ -62,7 +62,7 @@
         align-items: center;
         gap: 50px;
         height: 40px;
-        margin-bottom: 5px;
+        margin-bottom: 25px;
         user-select: auto;
         -webkit-user-select: auto; /* Safari */
         -ms-user-select: auto; /* IE 10 and IE 11 */
@@ -74,7 +74,8 @@
         font-weight: bold;
         cursor: default; 
     }
-    h4 {
+    h3 {
         font-family: 'JetBrains Mono';
+        font-weight: bold;
     }
 </style>

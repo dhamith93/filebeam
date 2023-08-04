@@ -93,7 +93,7 @@
     }
     #file-tree {
         margin-top: 5px;
-        height: calc(100vh - 160px);
+        height: calc(100vh - 185px);
         overflow-y: scroll;
     }
 

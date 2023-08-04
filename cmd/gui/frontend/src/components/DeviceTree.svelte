@@ -48,7 +48,7 @@
     }
 
     #device-tree {
-        height: calc(100vh - 129px);
+        height: calc(100vh - 140px);
         width: 340px;
         overflow-y: scroll;
     }
