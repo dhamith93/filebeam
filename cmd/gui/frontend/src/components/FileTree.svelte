@@ -7,7 +7,6 @@
     import {GetDirectoryContent} from '../../wailsjs/go/main/App.js'
 	export let path;
     export let onFileSelect;
-    export let onRefreshPath;
     let selected = [];
     let history = [];
     let content = [];
@@ -27,9 +26,7 @@
                 content = result;
                 selected.forEach(item => {
                     item.Selected.classList.remove('selected');
-                })
-                selected = [];
-                onRefreshPath();
+                });
             })
             .catch(e => {
                 alert('Cannot open given path. Please check the path and try again.');
@@ -37,17 +34,13 @@
     }
     function handleFileItemClick(item) {
         if (item.IsDir) {
-            history.push(path)
+            history.push(path);
             path = item.Path;
             refreshPath(path);
         } else {
-            onFileSelect(item)
-            if (selected.includes(item)) {
-                selected.splice(selected.indexOf(item), 1);
-                item.Selected.classList.remove('selected');
-            } else {
+            onFileSelect(item);
+            if (!selected.includes(item)) {
                 selected.push(item);
-                item.Selected.classList.add('selected');
             }
         }
     }
@@ -80,7 +73,9 @@
                     {/if}
                 </span>
                 <p>{item.Name}</p>
-    
+                {#if !item.IsDir}
+                    <div class="plus-sign">+</div>
+                {/if}
             </div>
         {/each}
     </div>
@@ -116,6 +111,20 @@
 
     #file-item:hover {
         background-color: rgb(86, 86, 86);
+    }
+
+    .plus-sign {
+        flex-grow: 1;
+        text-align: right;
+        font-weight: bold;
+        font-size: 1em;
+        display: none;
+    }
+
+    #file-item:hover .plus-sign {
+        display:block;
+        flex-grow: 1;
+        text-align: right;
     }
 
     #address-bar {

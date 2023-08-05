@@ -1,13 +1,9 @@
 <script>
-    import {getNotificationsContext} from 'svelte-notifications';
+    import {notifications} from '../notifications.js'
     import {GetTransfers} from '../../wailsjs/go/main/App.js'
     import {CancelTransfer} from '../../wailsjs/go/main/App.js'
     import {DownloadTransfer} from '../../wailsjs/go/main/App.js'
     import TransferItem from './TransferItem.svelte';
-
-    const {addNotification} = getNotificationsContext();
-
-    export let showTransfers;
     let transfers = [];
 
     const calculateSpeed = (timeInSecs, bytes) => {
@@ -33,41 +29,21 @@
 
     const cancelFunc = (ip, filename, isDownload) => {
         CancelTransfer(ip, filename, isDownload).then(() => {
-            addNotification({
-                text: 'Cancelled the file transfer.',
-                position: 'bottom-center',
-                type: 'success',
-                removeAfter: 5000
-            });
+            notifications.success('Cancelled the file transfer', 3000);
         }).catch(e => {
-            addNotification({
-                text: e,
-                position: 'bottom-center',
-                type: 'error',
-                removeAfter: 5000
-            });
+            notifications.danger(e, 3000);
         });
     };
 
     const downloadFunc = (host, filename) => {
         DownloadTransfer(host, filename).then(() => {
-            addNotification({
-                text: 'Downloading started.',
-                position: 'bottom-center',
-                type: 'success',
-                removeAfter: 5000
-            });
+            notifications.success('Downloading started', 3000);
         }).catch(e => {
-            addNotification({
-                text: e,
-                position: 'bottom-center',
-                type: 'error',
-                removeAfter: 5000
-            });
+            notifications.danger(e, 3000);
         });
     };
 
-    $: if (showTransfers) {
+    $: {
         setInterval(() => {
             GetTransfers().then((res) => {
                 let ts = [];
@@ -97,18 +73,18 @@
                 });
                 transfers = ts;
             }).catch(e => {
-                addNotification({
-                    text: e,
-                    position: 'bottom-center',
-                    type: 'error',
-                    removeAfter: 5000
-                })
+                notifications.danger(e, 3000);
             });
         }, 1000);
     }
 </script>
 
 <div id="main">
+    {#if transfers.length === 0}
+        <div class="box item">
+            <p class="filename">No transfers...</p>
+        </div>
+    {/if}
     {#each transfers as transfer}
         <svelte:component this={transfer.component} {...transfer} />
     {/each}

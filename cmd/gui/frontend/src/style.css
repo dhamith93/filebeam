@@ -31,10 +31,6 @@ body {
     text-align: center;
 }
 
-.selected {
-    background-color: rgb(86, 86, 86);
-}
-
 button {
     position: relative;
     align-items: center;
@@ -93,6 +89,50 @@ button:active {
 	right: -18px;
 	transition: all .3s;
     z-index: -999;
+}
+
+#meta {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    height: 40px;
+    margin-bottom: 25px;
+    user-select: auto;
+    -webkit-user-select: auto; /* Safari */
+    -ms-user-select: auto; /* IE 10 and IE 11 */
+}
+
+#header {
+    height: 1.5em;
+    margin: 8px 0 8px;
+    font-weight: bold;
+    cursor: default; 
+}
+h3 {
+    font-family: 'JetBrains Mono';
+    font-weight: bold;
+}
+
+#devices-main {
+    display: flex;
+    justify-content: center;
+    padding-left: 25px; /*WINDOWS*/
+    padding-right: 25px; /*WINDOWS*/
+}
+
+.modal-content {
+    background-color: #dddddd;
+    min-height: 80%;
+    min-width: 80%;
+    border-radius: 10px;
+}
+
+.item {
+    max-width: 90%;
+    margin: auto;
+    margin-top: 20px;
 }
 
 ::-webkit-scrollbar {
